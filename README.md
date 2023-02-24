@@ -12,16 +12,14 @@ needs and a session database (called SessION) to handles sessions when created. 
 a visual representation of both databases.
 
 ### IMPLEMENTED
-* Connecting datasource to the appropriate MySQL table
+* Connecting multiple datasource (Databases)
 * Using spring recommended schema for JDBC Session https://github.com/spring-projects/spring-session/blob/main/spring-session-jdbc/src/main/resources/org/springframework/session/jdbc/schema-mysql.sql
+* Persisted authenticated users in SecurityContextHolderStrategy and SecurityContextRepository
+* Logout route (Delete sessions from SecurityContextHolder)
 
 ### TO IMPLEMENT
-* Create and add a session when an employee/user signs in
-* Follow up from point one: add this session to the SecurityContextHolder
-* Implement a MaximumSessions(1) for each user
-* Logout method: remove session from SecurityContextHolder
-
-
+* Maximum session (If a user tries signing in though user still has a valid session in the 
+  SecurityContextHolder, new session is replaced with the old session).
 
 ### Dependencies
 * [Spring Configuration Processor](https://docs.spring.io/spring-boot/docs/3.0.2/reference/htmlsingle/#appendix.configuration-metadata.annotation-processor)

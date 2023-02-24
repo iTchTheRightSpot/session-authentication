@@ -60,14 +60,27 @@ public class AuthController {
 
 
     /*
-    *
-    * */
-    @GetMapping(path = "authenticated")
+     * Protected route only an employee with the role ADMIN can hit (Status 200)
+     *
+     * @param Authentication
+     * @return String
+     * */
+    @GetMapping(path = "/authenticated")
     @PreAuthorize(value = "hasAnyAuthority('ADMIN')")
     public String getAuthenticated(Authentication authentication) {
-        return "Authenticated " + authentication.getPrincipal();
+        return "Only an ADMIN. Admins name is " + authentication.getPrincipal();
     }
 
-
+    /*
+    * Protected route only an employee with the roles ADMIN or Employee can hit (Status 200)
+    *
+    * @param Authentication
+    * @return String
+    * */
+    @GetMapping(path = "/employee")
+    @PreAuthorize(value = "hasAnyAuthority('ADMIN', 'EMPLOYEE')")
+    public String onlyEmployeesCanHitThisRoute(Authentication authentication) {
+        return "An Admin or Employee can hit this rout. Employees name is " + authentication.getPrincipal();
+    }
 
 }
