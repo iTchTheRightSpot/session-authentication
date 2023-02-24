@@ -3,8 +3,9 @@ package com.example.sessionauth.controller;
 import com.example.sessionauth.dto.EmployeeDTO;
 import com.example.sessionauth.service.AuthService;
 import com.example.sessionauth.service.EmployeeService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -16,12 +17,17 @@ import static org.springframework.http.HttpStatus.CREATED;
 
 @RestController
 @RequestMapping(path = "/api/v1/auth")
-@AllArgsConstructor
 public class AuthController {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(AuthController.class);
+
     private final AuthService authService;
     private final EmployeeService employeeService;
+
+    public AuthController(AuthService authService, EmployeeService employeeService) {
+        this.authService = authService;
+        this.employeeService = employeeService;
+    }
 
     /*
      * Public APIs needed to sign up employees
@@ -45,16 +51,18 @@ public class AuthController {
      * @return AuthResponse
      * */
     @PostMapping(path = "/login")
-    public ResponseEntity<?> loginEmployee(@Valid @RequestBody EmployeeDTO employeeDTO) {
+    public void loginEmployee(@Valid @RequestBody EmployeeDTO employeeDTO,
+                                           HttpServletRequest request,
+                                           HttpServletResponse response) {
         LOGGER.info("Employee logged in called from {}", AuthController.class);
-        return authService.loginEmployee(employeeDTO);
+        authService.loginEmployee(employeeDTO, request, response);
     }
 
     /*
     *
     * */
     @GetMapping(path = "authenticated")
-    @PreAuthorize(value = "hasAnyAuthority('ADMIN', 'EMPLOYEE')")
+    @PreAuthorize(value = "hasAnyAuthority('ADMIN')")
     public String getAuthenticated(Authentication authentication) {
         return "Authenticated " + authentication.getPrincipal();
     }

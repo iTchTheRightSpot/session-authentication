@@ -12,7 +12,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.session.FindByIndexNameSessionRepository;
 import org.springframework.session.Session;
@@ -44,7 +43,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(auth -> {
-                    auth.requestMatchers("/api/public/**").permitAll();
+                    auth.requestMatchers("/api/v1/auth/signup", "/api/v1/auth/login").permitAll();
                     auth.anyRequest().authenticated();
                 })
                 .sessionManagement(sessions ->
@@ -53,7 +52,7 @@ public class SecurityConfig {
                                 .sessionFixation().migrateSession()
                                 .maximumSessions(1) //
                 )
-                .addFilterBefore(new CustomFilter(sessionRepository), UsernamePasswordAuthenticationFilter.class)
+//                .addFilterBefore(new CustomFilter(sessionRepository), UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 
