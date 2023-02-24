@@ -6,7 +6,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -40,6 +39,17 @@ public class AuthService {
         this.sessionRepository = sessionRepository;
     }
 
+    /*
+     * After an employee is authenticated via the auth manager, I am manually authenticating the user instead of relying
+     * on Spring Security Filters.
+     * For a better understanding, click the link below
+     * https://docs.spring.io/spring-security/reference/servlet/authentication/session-management.html
+     *
+     * @param dto
+     * @param HttpServletRequest
+     * @param HttpServletResponse
+     * @return void
+     * */
     public void loginEmployee(EmployeeDTO dto,
                               HttpServletRequest request,
                               HttpServletResponse response) {
@@ -63,32 +73,6 @@ public class AuthService {
         session.setMaxInactiveInterval(Duration.of(expiryTime, ChronoUnit.MINUTES));
         session.setAttribute(SPRING_SECURITY_CONTEXT_KEY, newContext);
         this.sessionRepository.save(session);
-
-        // Build Response Cookie
-        ResponseCookie responseCookie = ResponseCookie
-                .from("JSESSIONID", session.getId())
-                .domain("localhost")
-                .httpOnly(true)
-                .secure(false)
-                .maxAge(expiryTime)
-                .path("/")
-                .sameSite("Lax")
-                .build();
-
-        // Header
-//        HttpHeaders headers = new HttpHeaders();
-//        headers.setDate(Instant.now().atZone(ZoneOffset.UTC));
-//        headers.set(SET_COOKIE, responseCookie.toString());
-
-//        Cookie cookie = new Cookie("SESSION", );
-//        cookie.setHttpOnly(true);
-//        cookie.setSecure(false);
-//        cookie.setMaxAge(expiryTime);
-//        cookie.setDomain("localhost");
-//        cookie.setPath("/");
-//
-//        response.addCookie(cookie);
     }
-
 
 }
