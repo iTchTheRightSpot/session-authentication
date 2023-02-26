@@ -16,10 +16,8 @@ a visual representation of both databases.
 * Using spring recommended schema for JDBC Session https://github.com/spring-projects/spring-session/blob/main/spring-session-jdbc/src/main/resources/org/springframework/session/jdbc/schema-mysql.sql
 * Persisted authenticated users in SecurityContextHolderStrategy and SecurityContextRepository
 * Logout route (Delete sessions from SecurityContextHolder)
-
-### TO IMPLEMENT
-* Maximum session (If a user tries signing in though user still has a valid session in the 
-  SecurityContextHolder, new session is replaced with the old session).
+* Max session (If a user tries signing in though user still has a valid session in the 
+  SecurityContextHolder, new session is replaced with the old session) 
 
 ### Dependencies
 * [Spring Configuration Processor](https://docs.spring.io/spring-boot/docs/3.0.2/reference/htmlsingle/#appendix.configuration-metadata.annotation-processor)
@@ -29,4 +27,3 @@ a visual representation of both databases.
 * [Spring Web](https://docs.spring.io/spring-boot/docs/3.0.2/reference/htmlsingle/#web)
 * [Spring Security](https://docs.spring.io/spring-boot/docs/3.0.2/reference/htmlsingle/#web.security)
 * [Validation](https://docs.spring.io/spring-boot/docs/3.0.2/reference/htmlsingle/#io.validation)
-
