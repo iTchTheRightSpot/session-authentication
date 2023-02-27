@@ -1,6 +1,6 @@
 package com.example.sessionauth.config;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -25,10 +25,11 @@ import static org.springframework.security.config.http.SessionCreationPolicy.IF_
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class SecurityConfig {
     private final CustomAuthProvider customAuthProvided;
     private final FindByIndexNameSessionRepository<? extends Session> sessionRepository;
+
 
     /*
      * Method is responsible for using custom DB
@@ -49,17 +50,16 @@ public class SecurityConfig {
                     auth.requestMatchers("/api/v1/auth/signup", "/api/v1/auth/login").permitAll();
                     auth.anyRequest().authenticated();
                 })
-                .sessionManagement(sessions ->
-                        sessions
-                                .sessionCreationPolicy(IF_REQUIRED) //
-                                .sessionFixation().migrateSession()
-                                .maximumSessions(1) //
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(IF_REQUIRED) //
+                        .sessionFixation().migrateSession()
+                        .maximumSessions(1) //
                 )
                 .exceptionHandling((ex) ->
                         ex.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
                 )
                 .logout(out -> out.logoutUrl("/api/v1/auth/logout")
-                        .invalidateHttpSession(true)
+                        .invalidateHttpSession(true) // Invalidate all sessions after logout
                         .deleteCookies("JSESSIONID")
                         .logoutSuccessHandler((request, response, authentication) ->
                                 SecurityContextHolder.clearContext()

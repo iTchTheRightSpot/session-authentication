@@ -6,7 +6,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -63,6 +62,8 @@ public class AuthService {
         Authentication authentication = authManager.authenticate(userNamePasswordToken);
         LOGGER.info("Authentication " + authentication);
 
+        // JSESSIONID=NzExODI4NWUtYzAwYi00NmE4LTgxMDUtNWRmYWIzM2QzNjEx
+
         // Create a new context
         var newContext = SecurityContextHolder.createEmptyContext();
         newContext.setAuthentication(authentication);
@@ -71,14 +72,9 @@ public class AuthService {
 
         // Build Session
         Session session = sessionRepository.createSession();
-        session.setMaxInactiveInterval(Duration.of(2, ChronoUnit.MINUTES));
+        session.setMaxInactiveInterval(Duration.of(expiryTime, ChronoUnit.MINUTES));
         session.setAttribute(SPRING_SECURITY_CONTEXT_KEY, newContext);
         this.sessionRepository.save(session);
     }
 
-    public ResponseEntity<?> logout(Authentication authentication) {
-        authentication.setAuthenticated(false);
-        SecurityContextHolder.clearContext();
-        return null;
-    }
 }

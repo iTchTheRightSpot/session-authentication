@@ -14,6 +14,19 @@ import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 @Configuration
 public class CorsConfig {
 
+//    @Bean
+//    public WebMvcConfigurer corsConfigurer() {
+//        return new WebMvcConfigurer() {
+//            @Override
+//            public void addCorsMappings(CorsRegistry registry) {
+//                registry.addMapping("/**")
+//                        .allowedOrigins("http://localhost:4200")
+//                        .allowedHeaders(CONTENT_TYPE)
+//                        .allowedMethods("GET", "PUT", "POST", "DELETE", "OPTIONS");
+//            }
+//        };
+//    }
+
     /*
     * For angular frontend
     * */
