@@ -23,7 +23,6 @@ a visual representation of both databases.
 * Logout route (Delete sessions from SecurityContextHolder)
 * Max session (If a user tries signing in though user still has a valid session in the 
   SecurityContextHolder, new session is replaced with the old session) 
->>>>>>> ae9f505ec1acb757e9ecb803746d837da633ed3f
 
 ### Dependencies
 * [Spring Configuration Processor](https://docs.spring.io/spring-boot/docs/3.0.2/reference/htmlsingle/#appendix.configuration-metadata.annotation-processor)
