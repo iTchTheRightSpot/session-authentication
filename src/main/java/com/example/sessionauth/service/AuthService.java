@@ -5,7 +5,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -13,14 +12,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextHolderStrategy;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
-import org.springframework.session.FindByIndexNameSessionRepository;
-import org.springframework.session.Session;
 import org.springframework.stereotype.Service;
-
-import java.time.Duration;
-import java.time.temporal.ChronoUnit;
-
-import static org.springframework.security.web.context.HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY;
 
 @Service
 public class AuthService {
@@ -29,14 +21,10 @@ public class AuthService {
             new HttpSessionSecurityContextRepository();
     private final SecurityContextHolderStrategy securityContextHolderStrategy =
             SecurityContextHolder.getContextHolderStrategy();
-    @Value(value = "${custom.max-expiry.time}")
-    private Long expiryTime;
     private final AuthenticationManager authManager;
-    private final FindByIndexNameSessionRepository sessionRepository;
 
-    public AuthService(AuthenticationManager authManager, FindByIndexNameSessionRepository sessionRepository) {
+    public AuthService(AuthenticationManager authManager) {
         this.authManager = authManager;
-        this.sessionRepository = sessionRepository;
     }
 
     /*
@@ -62,19 +50,11 @@ public class AuthService {
         Authentication authentication = authManager.authenticate(userNamePasswordToken);
         LOGGER.info("Authentication " + authentication);
 
-        // JSESSIONID=NzExODI4NWUtYzAwYi00NmE4LTgxMDUtNWRmYWIzM2QzNjEx
-
         // Create a new context
         var newContext = SecurityContextHolder.createEmptyContext();
         newContext.setAuthentication(authentication);
         this.securityContextHolderStrategy.setContext(newContext);
         this.securityContextRepository.saveContext(newContext, request, response);
-
-        // Build Session
-        Session session = sessionRepository.createSession();
-        session.setMaxInactiveInterval(Duration.of(expiryTime, ChronoUnit.MINUTES));
-        session.setAttribute(SPRING_SECURITY_CONTEXT_KEY, newContext);
-        this.sessionRepository.save(session);
     }
 
 }

@@ -54,11 +54,13 @@ public class SecurityConfig {
                         .sessionCreationPolicy(IF_REQUIRED) //
                         .sessionFixation().migrateSession()
                         .maximumSessions(1) //
+                        .sessionRegistry(sessionRegistry())
                 )
                 .exceptionHandling((ex) ->
                         ex.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
                 )
                 .logout(out -> out.logoutUrl("/api/v1/auth/logout")
+                        .addLogoutHandler(new CustomLogoutHandler(sessionRepository))
                         .invalidateHttpSession(true) // Invalidate all sessions after logout
                         .deleteCookies("JSESSIONID")
                         .logoutSuccessHandler((request, response, authentication) ->
@@ -80,6 +82,7 @@ public class SecurityConfig {
     }
 
 
+    // Maintains a registry of SessionInformation instances.
     @Bean
     public SessionRegistry sessionRegistry() {
         return new SpringSessionBackedSessionRegistry<>(sessionRepository);
