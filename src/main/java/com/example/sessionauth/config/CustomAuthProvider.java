@@ -15,6 +15,11 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+/**
+ * Class is responsible for validating request based on info stored in database
+ * Note: in the if case in authenticate method, one can implement an if case to make sure user is has been confirmed,
+ * not locked etc
+ * */
 @Component
 @AllArgsConstructor
 public class CustomAuthProvider implements AuthenticationProvider {
@@ -24,7 +29,7 @@ public class CustomAuthProvider implements AuthenticationProvider {
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-        String email = authentication.getName();
+        String email = (String) authentication.getPrincipal();
         String password = authentication.getCredentials().toString();
         LOGGER.info("Custom Auth Provider {}", CustomAuthProvider.class);
         Employee employee = employeeService.findEmployeeByEmail(email);
@@ -32,7 +37,8 @@ public class CustomAuthProvider implements AuthenticationProvider {
         // Validate if credentials is an employee
         UserDetails employeeDetails = new EmployeeDetails(employee);
         if (passwordEncoder.matches(password, employeeDetails.getPassword())) {
-            return new UsernamePasswordAuthenticationToken(email, password, employeeDetails.getAuthorities());
+            return UsernamePasswordAuthenticationToken
+                    .authenticated(email, null, employeeDetails.getAuthorities());
         }
 
         throw new UsernameNotFoundException("Invalid email or password");

@@ -25,24 +25,26 @@ public class EmployeeService {
     private final PasswordEncoder passwordEncoder;
 
 
-    /*
+    /**
      * Returns an employee object based on employeeEmail
      *
      * @param employeeEmail
+     * @throws RuntimeException
      * @return Employee
-     * */
+     * **/
     public Employee findEmployeeByEmail(String employeeEmail) {
         return employeeRepository
                 .findEmployeeByEmail(employeeEmail)
                 .orElseThrow(() -> new RuntimeException("Does not exist"));
     }
 
-    /*
+    /**
      * Method called when an employee signs up
      *
-     * @param employeeDTO
-     * @param void
-     * */
+     * @param userDTO
+     * @throws RuntimeException
+     * @return void
+     * **/
     public void signupEmployee(EmployeeDTO userDTO) {
         String email = userDTO.getEmail().trim();
         String password = userDTO.getPassword().trim();
@@ -65,6 +67,5 @@ public class EmployeeService {
         LOGGER.info("New Employee saved");
         employeeRepository.save(employee);
     }
-
 
 }

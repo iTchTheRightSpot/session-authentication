@@ -12,16 +12,16 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import javax.sql.DataSource;
 
+
+/**
+ * This class allows storing sessions in a separate DB.
+ * It allows to assign primary and session data source
+ * Link below explains better explanation
+ * <a href="https://springhow.com/spring-session-different-database/">...</a>
+ * **/
 @Configuration
 @EnableTransactionManagement
 public class DataSourceConfig {
-
-    /*
-     * This class allows storing sessions in a separate DB.
-     * It allows to assign primary and session data source
-     * Link below explains better https://springhow.com/spring-session-different-database/
-     * */
-
     @Bean
     @Primary
     @ConfigurationProperties("spring.datasource")

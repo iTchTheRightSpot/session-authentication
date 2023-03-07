@@ -12,7 +12,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
@@ -26,14 +25,14 @@ import static org.springframework.security.config.http.SessionCreationPolicy.IF_
 @EnableWebSecurity
 @EnableMethodSecurity
 @RequiredArgsConstructor
-public class SecurityConfig {
+public class SecurityConfig<S extends Session> {
     private final CustomAuthProvider customAuthProvided;
-    private final FindByIndexNameSessionRepository<? extends Session> sessionRepository;
+    private final FindByIndexNameSessionRepository<S> sessionRepository;
 
 
-    /*
+    /**
      * Method is responsible for using custom DB
-     * */
+     * **/
     @Bean
     public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
         AuthenticationManagerBuilder managerBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
@@ -44,7 +43,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
-                .csrf(AbstractHttpConfigurer::disable)
+                .csrf(AbstractHttpConfigurer::disable) // To implement csrf visit spring security
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(auth -> {
                     auth.requestMatchers("/api/v1/auth/signup", "/api/v1/auth/login").permitAll();
@@ -82,9 +81,13 @@ public class SecurityConfig {
     }
 
 
-    // Maintains a registry of SessionInformation instances.
+    /**
+     * Maintains a registry of SessionInformation instances. For better understanding visit
+     * <a href="https://github.com/spring-projects/spring-session/blob/main/spring-session-docs/modules/ROOT/examples/java/docs/security/SecurityConfiguration.java">...</a>
+     * **/
+
     @Bean
-    public SessionRegistry sessionRegistry() {
+    public SpringSessionBackedSessionRegistry<S> sessionRegistry() {
         return new SpringSessionBackedSessionRegistry<>(sessionRepository);
     }
 

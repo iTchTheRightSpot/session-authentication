@@ -29,12 +29,12 @@ public class AuthController {
         this.employeeService = employeeService;
     }
 
-    /*
+    /**
      * Public APIs needed to sign up employees
      *
      * @param employeeDTO
      * @return ResponseEntity
-     * */
+     * **/
     @PostMapping(path = "/signup")
     public ResponseEntity<?> signUpEmployee(@Valid @RequestBody EmployeeDTO employeeDTO) {
         LOGGER.info("Employee sign up called from {}", AuthController.class);
@@ -44,12 +44,12 @@ public class AuthController {
                 .body("CREATED");
     }
 
-    /*
+    /**
      * Public API that allows an employee to login
      *
      * @param employeeDTO
      * @return AuthResponse
-     * */
+     * **/
     @PostMapping(path = "/login")
     public void loginEmployee(@Valid @RequestBody EmployeeDTO employeeDTO,
                                            HttpServletRequest request,
@@ -59,24 +59,24 @@ public class AuthController {
     }
 
 
-    /*
+    /**
      * Protected route only an employee with the role ADMIN can hit (Status 200)
      *
-     * @param Authentication
+     * @param authentication
      * @return String
-     * */
+     * **/
     @GetMapping(path = "/authenticated")
     @PreAuthorize(value = "hasAnyAuthority('ADMIN')")
     public String getAuthenticated(Authentication authentication) {
         return "Only an ADMIN. Admins name is " + authentication.getPrincipal();
     }
 
-    /*
+    /**
     * Protected route only an employee with the roles ADMIN or Employee can hit (Status 200)
     *
-    * @param Authentication
+    * @param authentication
     * @return String
-    * */
+    * **/
     @GetMapping(path = "/employee")
     @PreAuthorize(value = "hasAnyAuthority('ADMIN', 'EMPLOYEE')")
     public String onlyEmployeesCanHitThisRoute(Authentication authentication) {

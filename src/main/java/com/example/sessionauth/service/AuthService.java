@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextHolderStrategy;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
@@ -27,17 +28,16 @@ public class AuthService {
         this.authManager = authManager;
     }
 
-    /*
-     * After an employee is authenticated via the auth manager, I am manually authenticating the user instead of relying
-     * on Spring Security Filters.
+    /**
+     * After an employee is authenticated via the auth manager, I am manually storing the authentication
      * For a better understanding, click the link below
-     * https://docs.spring.io/spring-security/reference/servlet/authentication/session-management.html
+     * <a href="https://docs.spring.io/spring-security/reference/servlet/authentication/session-management.html">...</a>
      *
      * @param dto
-     * @param HttpServletRequest
-     * @param HttpServletResponse
+     * @param request
+     * @param response
      * @return void
-     * */
+     * **/
     public void loginEmployee(EmployeeDTO dto,
                               HttpServletRequest request,
                               HttpServletResponse response) {
@@ -51,10 +51,9 @@ public class AuthService {
         LOGGER.info("Authentication " + authentication);
 
         // Create a new context
-        var newContext = SecurityContextHolder.createEmptyContext();
+        SecurityContext newContext = SecurityContextHolder.createEmptyContext();
         newContext.setAuthentication(authentication);
         this.securityContextHolderStrategy.setContext(newContext);
         this.securityContextRepository.saveContext(newContext, request, response);
     }
-
 }
