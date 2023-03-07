@@ -1,6 +1,6 @@
 package com.example.sessionauth.config;
 
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -24,10 +24,15 @@ import static org.springframework.security.config.http.SessionCreationPolicy.IF_
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
-@RequiredArgsConstructor
-public class SecurityConfig<S extends Session> {
+public class SecurityConfig {
     private final CustomAuthProvider customAuthProvided;
-    private final FindByIndexNameSessionRepository<S> sessionRepository;
+    private final FindByIndexNameSessionRepository<? extends Session> sessionRepository;
+
+    @Autowired
+    public SecurityConfig(CustomAuthProvider customAuthProvided, FindByIndexNameSessionRepository<? extends Session> sessionRepository) {
+        this.customAuthProvided = customAuthProvided;
+        this.sessionRepository = sessionRepository;
+    }
 
 
     /**
@@ -85,9 +90,8 @@ public class SecurityConfig<S extends Session> {
      * Maintains a registry of SessionInformation instances. For better understanding visit
      * <a href="https://github.com/spring-projects/spring-session/blob/main/spring-session-docs/modules/ROOT/examples/java/docs/security/SecurityConfiguration.java">...</a>
      * **/
-
     @Bean
-    public SpringSessionBackedSessionRegistry<S> sessionRegistry() {
+    public SpringSessionBackedSessionRegistry<? extends Session> sessionRegistry() {
         return new SpringSessionBackedSessionRegistry<>(sessionRepository);
     }
 
