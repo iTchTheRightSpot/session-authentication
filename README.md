@@ -1,5 +1,14 @@
 # Restful Session Authentication and Authorization using java 17, Spring Boot 3.0.2 and MySQL
 
+### Quickstart
+
+```bash
+git clone git@github.com:emmanuelU17/restful-session-authentication.git
+./mvnw clean package
+# Still can't do this, yet
+./mvnw spring-boot:run
+```
+
 ### Description
 This project should explain using Spring Security to explain/implement role based authentication and authorization.
 I would be implementing the logic of a user attempts to sign in, if the credentials match details in store in the
