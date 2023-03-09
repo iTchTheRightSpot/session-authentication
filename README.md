@@ -1,4 +1,4 @@
-# Restful Session Authentication and Authorization using java 17, Spring Boot 3.0.2 and MySQL
+# Restful Session Authentication and Authorization using java 17, Spring Boot 3.0.4 and MySQL
 
 ### Prerequisite
 
