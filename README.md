@@ -1,5 +1,9 @@
 # Restful Session Authentication and Authorization using java 17, Spring Boot 3.0.2 and MySQL
 
+### Prerequisite
+
+- Requires Docker for Testcontainers
+
 ### Quickstart
 
 ```bash
@@ -29,10 +33,10 @@ a visual representation of both databases.
   SecurityContextHolder, new session is replaced with the old session).
 
 ### Dependencies
-* [Spring Configuration Processor](https://docs.spring.io/spring-boot/docs/3.0.2/reference/htmlsingle/#appendix.configuration-metadata.annotation-processor)
+* [Spring Configuration Processor](https://docs.spring.io/spring-boot/docs/3.0.4/reference/htmlsingle/#appendix.configuration-metadata.annotation-processor)
 * [Spring Session](https://docs.spring.io/spring-session/reference/)
-* [Spring Data JDBC](https://docs.spring.io/spring-boot/docs/3.0.2/reference/htmlsingle/#data.sql.jdbc)
-* [Spring Data JPA](https://docs.spring.io/spring-boot/docs/3.0.2/reference/htmlsingle/#data.sql.jpa-and-spring-data)
-* [Spring Web](https://docs.spring.io/spring-boot/docs/3.0.2/reference/htmlsingle/#web)
-* [Spring Security](https://docs.spring.io/spring-boot/docs/3.0.2/reference/htmlsingle/#web.security)
-* [Validation](https://docs.spring.io/spring-boot/docs/3.0.2/reference/htmlsingle/#io.validation)
+* [Spring Data JDBC](https://docs.spring.io/spring-boot/docs/3.0.4/reference/htmlsingle/#data.sql.jdbc)
+* [Spring Data JPA](https://docs.spring.io/spring-boot/docs/3.0.4/reference/htmlsingle/#data.sql.jpa-and-spring-data)
+* [Spring Web](https://docs.spring.io/spring-boot/docs/3.0.4/reference/htmlsingle/#web)
+* [Spring Security](https://docs.spring.io/spring-boot/docs/3.0.4/reference/htmlsingle/#web.security)
+* [Validation](https://docs.spring.io/spring-boot/docs/3.0.4/reference/htmlsingle/#io.validation)
