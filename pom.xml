@@ -9,9 +9,9 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.example</groupId>
-    <artifactId>SessionAuth</artifactId>
+    <artifactId>sessionauth</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>SessionAuth</name>
+    <name>sessionauth</name>
     <description>SessionAuth</description>
     <properties>
         <java.version>17</java.version>

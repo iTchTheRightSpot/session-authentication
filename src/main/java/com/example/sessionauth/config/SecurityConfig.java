@@ -12,6 +12,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
@@ -57,7 +58,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(IF_REQUIRED) //
                         .sessionFixation().migrateSession()
-                        .maximumSessions(1) //
+                        .maximumSessions(2) //
                         .sessionRegistry(sessionRegistry())
                 )
                 .exceptionHandling((ex) ->
@@ -91,7 +92,7 @@ public class SecurityConfig {
      * <a href="https://github.com/spring-projects/spring-session/blob/main/spring-session-docs/modules/ROOT/examples/java/docs/security/SecurityConfiguration.java">...</a>
      * **/
     @Bean
-    public SpringSessionBackedSessionRegistry<? extends Session> sessionRegistry() {
+    public SessionRegistry sessionRegistry() {
         return new SpringSessionBackedSessionRegistry<>(sessionRepository);
     }
 
