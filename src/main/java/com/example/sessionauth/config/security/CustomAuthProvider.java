@@ -1,4 +1,4 @@
-package com.example.sessionauth.config;
+package com.example.sessionauth.config.security;
 
 import com.example.sessionauth.entity.Employee;
 import com.example.sessionauth.entity.userdetails.EmployeeDetails;

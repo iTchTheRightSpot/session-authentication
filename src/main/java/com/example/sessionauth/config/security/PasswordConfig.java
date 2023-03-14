@@ -1,4 +1,4 @@
-package com.example.sessionauth.config;
+package com.example.sessionauth.config.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

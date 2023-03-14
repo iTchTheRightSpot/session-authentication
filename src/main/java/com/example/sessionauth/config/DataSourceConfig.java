@@ -4,7 +4,6 @@ import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.sql.init.DatabaseInitializationMode;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -52,6 +51,26 @@ public class DataSourceConfig {
                 .build();
     }
 
+    /**
+     * I am choosing to write my own sql query for instead of relying on JPA. Then link below best explains
+     * making the configurations in application.properties file
+     * <p>
+     * <a href="https://www.baeldung.com/spring-boot-data-sql-and-schema-sql">...</a>
+     * */
+    @Bean
+    public DataSourceInitializer primaryDataSourceInitializer(@Qualifier(value = "primaryDataSource") DataSource dataSource) {
+        ResourceDatabasePopulator resourceDatabasePopulator = new ResourceDatabasePopulator();
+        resourceDatabasePopulator.addScript(new ClassPathResource("database/drop-main.sql"));
+        resourceDatabasePopulator.addScript(new ClassPathResource("database/schema-main.sql"));
+
+        DataSourceInitializer dataSourceInitializer = new DataSourceInitializer();
+        dataSourceInitializer.setDataSource(dataSource);
+        dataSourceInitializer.setDatabasePopulator(resourceDatabasePopulator);
+
+        return  dataSourceInitializer;
+    }
+
+
     @Bean
     @ConfigurationProperties("spring.datasource.session")
     @Qualifier("sessionDataSourceProperties")
@@ -75,10 +94,10 @@ public class DataSourceConfig {
      * <a href="https://stackoverflow.com/questions/51146269/spring-boot-2-multiple-datasources-initialize-schema">...</a>
      * */
     @Bean
-    public DataSourceInitializer dataSourceInitializer(@Qualifier(value = "sessionDataSource") DataSource dataSource) {
+    public DataSourceInitializer sessionDataSourceInitializer(@Qualifier(value = "sessionDataSource") DataSource dataSource) {
         ResourceDatabasePopulator resourceDatabasePopulator = new ResourceDatabasePopulator();
-        resourceDatabasePopulator.addScript(new ClassPathResource("schema-drop-mysql.sql"));
-        resourceDatabasePopulator.addScript(new ClassPathResource("schema.sql"));
+        resourceDatabasePopulator.addScript(new ClassPathResource("database/schema-drop-mysql.sql"));
+        resourceDatabasePopulator.addScript(new ClassPathResource("database/schema.sql"));
 
         DataSourceInitializer dataSourceInitializer = new DataSourceInitializer();
         dataSourceInitializer.setDataSource(dataSource);

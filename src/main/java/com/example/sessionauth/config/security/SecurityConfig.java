@@ -1,5 +1,7 @@
-package com.example.sessionauth.config;
+package com.example.sessionauth.config.security;
 
+import com.example.sessionauth.config.security.CustomAuthProvider;
+import com.example.sessionauth.config.security.CustomLogoutHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

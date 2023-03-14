@@ -17,7 +17,7 @@ git clone git@github.com:emmanuelU17/restful-session-authentication.git
 This project should explain using Spring Security to explain/implement role based authentication and authorization.
 I would be implementing the logic of a user attempts to sign in, if the credentials match details in store in the
 database (MySQL), a session is created and added to the SecurityContextHolder. Each user will have a max session of 1 
-meaning user can't be signed in on multiple browsers at once. 
+meaning user can't be signed in on multiple browsers at once (subject to change based on developers needs).
 
 To explain further, I created to separate MySQL databases. A primary database (called Dummy) to handle the applications 
 needs and a session database (called SessION) to handles sessions when created. The session management policy is 
