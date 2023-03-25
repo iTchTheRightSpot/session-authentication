@@ -6,8 +6,9 @@ import com.example.sessionauth.service.EmployeeService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -17,13 +18,13 @@ import static org.springframework.http.HttpStatus.CREATED;
 
 @RestController
 @RequestMapping(path = "/api/v1/auth")
+@Slf4j
 public class AuthController {
-
-    private final static Logger LOGGER = LoggerFactory.getLogger(AuthController.class);
 
     private final AuthService authService;
     private final EmployeeService employeeService;
 
+    @Autowired
     public AuthController(AuthService authService, EmployeeService employeeService) {
         this.authService = authService;
         this.employeeService = employeeService;
@@ -37,7 +38,7 @@ public class AuthController {
      * **/
     @PostMapping(path = "/signup")
     public ResponseEntity<?> signUpEmployee(@Valid @RequestBody EmployeeDTO employeeDTO) {
-        LOGGER.info("Employee sign up called from {}", AuthController.class);
+        log.info("Employee sign up called from {}", AuthController.class);
         employeeService.signupEmployee(employeeDTO);
         return ResponseEntity
                 .status(CREATED)
@@ -51,34 +52,36 @@ public class AuthController {
      * @return AuthResponse
      * **/
     @PostMapping(path = "/login")
+    @ResponseStatus(HttpStatus.OK)
     public void loginEmployee(@Valid @RequestBody EmployeeDTO employeeDTO,
-                                           HttpServletRequest request,
-                                           HttpServletResponse response) {
-        LOGGER.info("Employee logged in called from {}", AuthController.class);
+                              HttpServletRequest request,
+                              HttpServletResponse response) {
+        log.info("Employee logged in called from {}", AuthController.class);
         authService.loginEmployee(employeeDTO, request, response);
     }
 
 
     /**
-     * Protected route only an employee with the role ADMIN can hit (Status 200)
+     * Protected route only employees with the role ADMIN can hit
      *
      * @param authentication
      * @return String
      * **/
     @GetMapping(path = "/authenticated")
-    @PreAuthorize(value = "hasAnyAuthority('ADMIN')")
+    @PreAuthorize(value = "hasAuthority('ADMIN')")
+    @ResponseStatus(HttpStatus.OK)
     public String getAuthenticated(Authentication authentication) {
         return "Only an ADMIN. Admins name is " + authentication.getPrincipal();
     }
 
     /**
-    * Protected route only an employee with the roles ADMIN or Employee can hit (Status 200)
+    * Protected route. Any authenticated employee can his this
     *
     * @param authentication
     * @return String
     * **/
     @GetMapping(path = "/employee")
-    @PreAuthorize(value = "hasAnyAuthority('ADMIN', 'EMPLOYEE')")
+    @ResponseStatus(HttpStatus.OK)
     public String onlyEmployeesCanHitThisRoute(Authentication authentication) {
         return "An Admin or Employee can hit this rout. Employees name is " + authentication.getPrincipal();
     }

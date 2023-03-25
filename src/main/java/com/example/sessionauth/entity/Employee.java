@@ -12,7 +12,7 @@ import java.util.Set;
 import static jakarta.persistence.CascadeType.*;
 import static jakarta.persistence.FetchType.EAGER;
 
-@Table(schema = "EMPLOYEE")
+@Table
 @Entity
 @NoArgsConstructor
 @Getter @Setter

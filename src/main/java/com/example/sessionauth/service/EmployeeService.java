@@ -35,14 +35,14 @@ public class EmployeeService {
     public Employee findEmployeeByEmail(String employeeEmail) {
         return employeeRepository
                 .findEmployeeByEmail(employeeEmail)
-                .orElseThrow(() -> new RuntimeException("Does not exist"));
+                .orElseThrow(() -> new IllegalStateException("Does not exist"));
     }
 
     /**
      * Method called when an employee signs up
      *
      * @param userDTO
-     * @throws RuntimeException
+     * @throws IllegalStateException
      * @return void
      * **/
     public void signupEmployee(EmployeeDTO userDTO) {
@@ -52,13 +52,14 @@ public class EmployeeService {
         Optional<Employee> checkIfUserEmailExist = employeeRepository
                 .findEmployeeByEmail(email);
         if (checkIfUserEmailExist.isPresent()) {
-            throw new RuntimeException("Email " + email + " already used");
+            throw new IllegalStateException("Email " + email + " already used");
         }
 
         var employee = new Employee();
         employee.setEmail(email);
         employee.setPassword(passwordEncoder.encode(password));
         employee.addRole(new Role(RoleEnum.EMPLOYEE));
+        employee.setEnabled(true);
 
         if (adminEmail.equals(email)) {
             employee.addRole(new Role(RoleEnum.ADMIN));

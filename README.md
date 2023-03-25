@@ -2,35 +2,46 @@
 
 ### Prerequisite
 
-- Requires Docker for Testcontainers
+- MySQL for Database
 
 ### Quickstart
+To use this project, you'll need a MySQL database and a Java IDE with Maven support. 
+Clone the repository and import the project into your IDE. Modify the database connection details in the 
+application.properties file to match your setup.
 
-```bash
+```bash or PowerShell
 git clone git@github.com:emmanuelU17/restful-session-authentication.git
-./mvnw clean package
-# Still can't do this, yet
-./mvnw spring-boot:run
+
+'To get the application running' ./mvnw clean package spring-boot:run
+
+'Admin employee credential for testing {
+  "email" : "admin@admin.com",
+  "password" : "password"
+} 
+'
+
 ```
 
 ### Description
-This project should explain using Spring Security to explain/implement role based authentication and authorization.
-I would be implementing the logic of a user attempts to sign in, if the credentials match details in store in the
-database (MySQL), a session is created and added to the SecurityContextHolder. Each user will have a max session of 1 
-meaning user can't be signed in on multiple browsers at once (subject to change based on developers needs).
+This project implements session authentication for a web application using Spring Security and MySQL as the session 
+storage. Users can sign up and log in using their email and password, and access different parts of the application 
+based on their role. The project also includes a custom entity object that maps to the Spring Session schema for easier 
+integration.
 
-To explain further, I created to separate MySQL databases. A primary database (called Dummy) to handle the applications 
-needs and a session database (called SessION) to handles sessions when created. The session management policy is 
-'IF_REQUIRED' because I want spring security to manage session for employee/users that have been authenticated. Below is
-a visual representation of both databases.
+### Features
+* Session authentication: Users can log in and out of the application, and their sessions are stored in a MySQL 
+  database for persistence across multiple requests.
+* Email and password authentication: Users can create an account with their email and password, and log in securely 
+  using Spring Security.
+* Role-based authorization: Different parts of the application can be restricted to certain roles, such as employee,
+  admin or anonymous.
+* Using spring security recommended schema for Session to create an Entity class for SpringSession and 
+  SpringSessionAttributes. https://github.com/spring-projects/spring-session/blob/main/spring-session-jdbc/src/main/resources/org/springframework/session/jdbc/schema-mysql.sql
+* Logout
 
-### IMPLEMENTED
-* Connecting multiple datasource (Databases)
-* Using spring recommended schema for JDBC Session https://github.com/spring-projects/spring-session/blob/main/spring-session-jdbc/src/main/resources/org/springframework/session/jdbc/schema-mysql.sql
-* Persisted authenticated users in SecurityContextHolderStrategy and SecurityContextRepository
-* Logout route (Delete sessions from SecurityContextHolder).
-* Maximum session (If a user tries signing in though user still has a valid session in the
-  SecurityContextHolder, new session is replaced with the old session).
+### TO IMPLEMENT
+* Maximum session (Set a constraint on use session).
+* Integration testing
 
 ### Dependencies
 * [Spring Configuration Processor](https://docs.spring.io/spring-boot/docs/3.0.4/reference/htmlsingle/#appendix.configuration-metadata.annotation-processor)

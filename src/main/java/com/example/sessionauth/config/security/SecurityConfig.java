@@ -1,12 +1,12 @@
 package com.example.sessionauth.config.security;
 
-import com.example.sessionauth.config.security.CustomAuthProvider;
-import com.example.sessionauth.config.security.CustomLogoutHandler;
+import com.example.sessionauth.session.JPASessionRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -15,8 +15,8 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.session.FindByIndexNameSessionRepository;
 import org.springframework.session.Session;
@@ -28,13 +28,22 @@ import static org.springframework.security.config.http.SessionCreationPolicy.IF_
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
-    private final CustomAuthProvider customAuthProvided;
+    private final AuthenticationProvider customAuthProvided;
     private final FindByIndexNameSessionRepository<? extends Session> sessionRepository;
+    private final JPASessionRepo jpaSessionRepo;
+    private final AuthenticationEntryPoint authEntryPoint;
 
     @Autowired
-    public SecurityConfig(CustomAuthProvider customAuthProvided, FindByIndexNameSessionRepository<? extends Session> sessionRepository) {
+    public SecurityConfig(
+            @Qualifier(value = "authProvider") AuthenticationProvider customAuthProvided,
+            FindByIndexNameSessionRepository<? extends Session> sessionRepository,
+            @Qualifier(value = "jpaSessionRepo") JPASessionRepo jpaSessionRepo,
+            @Qualifier(value = "authEntryPoint") AuthenticationEntryPoint authEntryPoint
+    ) {
         this.customAuthProvided = customAuthProvided;
         this.sessionRepository = sessionRepository;
+        this.jpaSessionRepo = jpaSessionRepo;
+        this.authEntryPoint = authEntryPoint;
     }
 
 
@@ -60,16 +69,17 @@ public class SecurityConfig {
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(IF_REQUIRED) //
                         .sessionFixation().migrateSession()
-                        .maximumSessions(2) //
+                        .maximumSessions(1) //
                         .sessionRegistry(sessionRegistry())
                 )
                 .exceptionHandling((ex) ->
-                        ex.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
+                        ex.authenticationEntryPoint(this.authEntryPoint)
                 )
-                .logout(out -> out.logoutUrl("/api/v1/auth/logout")
-                        .addLogoutHandler(new CustomLogoutHandler(sessionRepository))
+                .logout(out -> out
+                        .logoutUrl("/api/v1/auth/logout")
                         .invalidateHttpSession(true) // Invalidate all sessions after logout
                         .deleteCookies("JSESSIONID")
+                        .addLogoutHandler(new CustomLogoutHandler(this.jpaSessionRepo))
                         .logoutSuccessHandler((request, response, authentication) ->
                                 SecurityContextHolder.clearContext()
                         )
@@ -78,16 +88,15 @@ public class SecurityConfig {
     }
 
 
-    /*
+    /**
      * Method allows placing constraints on a single user’s ability to log in to your application
      * for better understanding
-     * https://docs.spring.io/spring-security/reference/servlet/authentication/session-management.html
+     * <a href="https://docs.spring.io/spring-security/reference/servlet/authentication/session-management.html">...</a>
      * */
     @Bean
     public HttpSessionEventPublisher httpSessionEventPublisher() {
         return new HttpSessionEventPublisher();
     }
-
 
     /**
      * Maintains a registry of SessionInformation instances. For better understanding visit

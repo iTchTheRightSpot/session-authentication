@@ -6,12 +6,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Table(schema = "ROLE")
+@Table
 @Entity
 @NoArgsConstructor
 @Getter @Setter
 public class Role {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column (name = "role_id", updatable = false, nullable = false)
