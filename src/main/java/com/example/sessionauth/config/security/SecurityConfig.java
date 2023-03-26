@@ -66,9 +66,9 @@ public class SecurityConfig {
                     auth.requestMatchers("/api/v1/auth/signup", "/api/v1/auth/login").permitAll();
                     auth.anyRequest().authenticated();
                 })
-                .sessionManagement(session -> session
+                .sessionManagement(sessionManagement -> sessionManagement
                         .sessionCreationPolicy(IF_REQUIRED) //
-                        .sessionFixation().migrateSession()
+                        .sessionFixation((sessionFixation) -> sessionFixation.newSession()) //
                         .maximumSessions(1) //
                         .sessionRegistry(sessionRegistry())
                 )
@@ -103,7 +103,7 @@ public class SecurityConfig {
      * <a href="https://github.com/spring-projects/spring-session/blob/main/spring-session-docs/modules/ROOT/examples/java/docs/security/SecurityConfiguration.java">...</a>
      * **/
     @Bean
-    public SessionRegistry sessionRegistry() {
+    public SpringSessionBackedSessionRegistry<? extends Session> sessionRegistry() {
         return new SpringSessionBackedSessionRegistry<>(sessionRepository);
     }
 

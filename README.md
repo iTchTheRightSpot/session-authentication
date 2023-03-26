@@ -38,10 +38,11 @@ integration.
 * Using spring security recommended schema for Session to create an Entity class for SpringSession and 
   SpringSessionAttributes. https://github.com/spring-projects/spring-session/blob/main/spring-session-jdbc/src/main/resources/org/springframework/session/jdbc/schema-mysql.sql
 * Logout
+* Integration test
 
 ### TO IMPLEMENT
-* Maximum session (Set a constraint on use session).
-* Integration testing
+* Maximum session (set a constraint on use session).
+* Integration test to verify constraint set based on maxSession in the SecurityFilterChain
 
 ### Dependencies
 * [Spring Configuration Processor](https://docs.spring.io/spring-boot/docs/3.0.4/reference/htmlsingle/#appendix.configuration-metadata.annotation-processor)

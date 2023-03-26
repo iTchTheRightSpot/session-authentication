@@ -22,6 +22,7 @@ import static org.springframework.http.HttpStatus.CREATED;
 public class AuthController {
 
     private final AuthService authService;
+
     private final EmployeeService employeeService;
 
     @Autowired
@@ -49,13 +50,17 @@ public class AuthController {
      * Public API that allows an employee to login
      *
      * @param employeeDTO
+     * @param request
+     * @param response
      * @return AuthResponse
      * **/
     @PostMapping(path = "/login")
     @ResponseStatus(HttpStatus.OK)
-    public void loginEmployee(@Valid @RequestBody EmployeeDTO employeeDTO,
-                              HttpServletRequest request,
-                              HttpServletResponse response) {
+    public void loginEmployee(
+            @Valid @RequestBody EmployeeDTO employeeDTO,
+            HttpServletRequest request,
+            HttpServletResponse response
+    ) {
         log.info("Employee logged in called from {}", AuthController.class);
         authService.loginEmployee(employeeDTO, request, response);
     }
@@ -68,10 +73,10 @@ public class AuthController {
      * @return String
      * **/
     @GetMapping(path = "/authenticated")
-    @PreAuthorize(value = "hasAuthority('ADMIN')")
+    @PreAuthorize(value = "hasRole('ADMIN')")
     @ResponseStatus(HttpStatus.OK)
     public String getAuthenticated(Authentication authentication) {
-        return "Only an ADMIN. Admins name is " + authentication.getPrincipal();
+        return "Admin name is " + authentication.getName();
     }
 
     /**
@@ -83,7 +88,7 @@ public class AuthController {
     @GetMapping(path = "/employee")
     @ResponseStatus(HttpStatus.OK)
     public String onlyEmployeesCanHitThisRoute(Authentication authentication) {
-        return "An Admin or Employee can hit this rout. Employees name is " + authentication.getPrincipal();
+        return "An Admin or Employee can hit this rout. Employees name is " + authentication.getName();
     }
 
 }

@@ -52,7 +52,7 @@ public class EmployeeService {
         Optional<Employee> checkIfUserEmailExist = employeeRepository
                 .findEmployeeByEmail(email);
         if (checkIfUserEmailExist.isPresent()) {
-            throw new IllegalStateException("Email " + email + " already used");
+            throw new IllegalStateException(email + " already exists");
         }
 
         var employee = new Employee();

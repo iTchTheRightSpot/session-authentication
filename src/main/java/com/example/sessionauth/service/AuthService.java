@@ -3,8 +3,7 @@ package com.example.sessionauth.service;
 import com.example.sessionauth.dto.EmployeeDTO;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -15,9 +14,13 @@ import org.springframework.security.web.context.HttpSessionSecurityContextReposi
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.stereotype.Service;
 
+import javax.json.Json;
+import java.io.IOException;
+import java.io.PrintWriter;
+
 @Service
+@Slf4j
 public class AuthService {
-    private final static Logger LOGGER = LoggerFactory.getLogger(AuthService.class);
     private final SecurityContextRepository securityContextRepository =
             new HttpSessionSecurityContextRepository();
     private final SecurityContextHolderStrategy securityContextHolderStrategy =
@@ -38,17 +41,27 @@ public class AuthService {
      * @param response
      * @return void
      * **/
-    public void loginEmployee(EmployeeDTO dto,
-                              HttpServletRequest request,
-                              HttpServletResponse response) {
-        LOGGER.info("Login service called {}", AuthService.class);
+    public void loginEmployee(
+            EmployeeDTO dto,
+            HttpServletRequest request,
+            HttpServletResponse response
+    ) {
+        log.info("Login service called {}", AuthService.class);
         String email = dto.getEmail().trim();
         String password = dto.getPassword().trim();
 
         // Validate User credentials
         var userNamePasswordToken = new UsernamePasswordAuthenticationToken(email, password);
         Authentication authentication = authManager.authenticate(userNamePasswordToken);
-        LOGGER.info("Authentication " + authentication);
+        log.info("Authentication " + authentication);
+
+        // Set response body
+        try {
+            response.getWriter().write("Successfully signed in");
+            response.getWriter().flush();
+        } catch (IOException e) {
+            log.error("Failed to parse response after successfully signing in {}", AuthService.class);
+        }
 
         // Create a new context
         SecurityContext newContext = SecurityContextHolder.createEmptyContext();
@@ -56,4 +69,6 @@ public class AuthService {
         this.securityContextHolderStrategy.setContext(newContext);
         this.securityContextRepository.saveContext(newContext, request, response);
     }
+
+
 }
