@@ -14,21 +14,17 @@ import org.springframework.security.web.context.HttpSessionSecurityContextReposi
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.stereotype.Service;
 
-import javax.json.Json;
-import java.io.IOException;
-import java.io.PrintWriter;
-
 @Service
 @Slf4j
 public class AuthService {
-    private final SecurityContextRepository securityContextRepository =
-            new HttpSessionSecurityContextRepository();
-    private final SecurityContextHolderStrategy securityContextHolderStrategy =
-            SecurityContextHolder.getContextHolderStrategy();
+    private final SecurityContextRepository securityContextRepository;
+    private final SecurityContextHolderStrategy securityContextHolderStrategy;
     private final AuthenticationManager authManager;
 
     public AuthService(AuthenticationManager authManager) {
         this.authManager = authManager;
+        this.securityContextRepository = new HttpSessionSecurityContextRepository();
+        this.securityContextHolderStrategy = SecurityContextHolder.getContextHolderStrategy();
     }
 
     /**
@@ -55,19 +51,11 @@ public class AuthService {
         Authentication authentication = authManager.authenticate(userNamePasswordToken);
         log.info("Authentication " + authentication);
 
-        // Set response body
-        try {
-            response.getWriter().write("Successfully signed in");
-            response.getWriter().flush();
-        } catch (IOException e) {
-            log.error("Failed to parse response after successfully signing in {}", AuthService.class);
-        }
-
         // Create a new context
-        SecurityContext newContext = SecurityContextHolder.createEmptyContext();
-        newContext.setAuthentication(authentication);
-        this.securityContextHolderStrategy.setContext(newContext);
-        this.securityContextRepository.saveContext(newContext, request, response);
+        SecurityContext context = SecurityContextHolder.createEmptyContext();
+        context.setAuthentication(authentication);
+        this.securityContextHolderStrategy.setContext(context);
+        this.securityContextRepository.saveContext(context, request, response);
     }
 
 

@@ -1,20 +1,20 @@
 package com.example.sessionauth.session;
 
 import jakarta.persistence.*;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
+import static jakarta.persistence.CascadeType.*;
 import static jakarta.persistence.FetchType.EAGER;
 
 @Table(name = "SPRING_SESSION")
 @Entity
-@NoArgsConstructor
-@Getter
-@Setter
+@NoArgsConstructor @Getter @Setter @EqualsAndHashCode
 public class SpringSession {
 
     @Id
@@ -39,8 +39,8 @@ public class SpringSession {
     @Column(name = "PRINCIPAL_NAME")
     private String principal;
 
-    @OneToMany(mappedBy = "springSession", fetch = EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<SessionAttributes> attributes = new ArrayList<>();
+    @OneToMany(mappedBy = "springSession", fetch = EAGER, cascade = {PERSIST, MERGE, REMOVE}, orphanRemoval = true)
+    private Set<SessionAttributes> attributes = new HashSet<>();
 
     /**
      * Method is needed when a user signs out. It is called in config ->security -> CustomLogoutHandler class
@@ -49,10 +49,13 @@ public class SpringSession {
      * @return void
      * */
     public void removeAttribute(SessionAttributes sessionAttributes) {
-        if (attributes.contains(sessionAttributes)) {
-            this.attributes.remove(sessionAttributes);
-            sessionAttributes.setSpringSession(this);
-        }
+        this.attributes.remove(sessionAttributes);
+        sessionAttributes.setSpringSession(this);
+    }
+
+    public void addAttribute(SessionAttributes sessionAttributes) {
+        this.attributes.add(sessionAttributes);
+        sessionAttributes.setSpringSession(this);
     }
 
 }

@@ -23,7 +23,7 @@ public class CustomLogoutHandler implements LogoutHandler {
     private final JPASessionRepo jpaSessionRepo;
 
     @Autowired
-    public CustomLogoutHandler( @Qualifier(value = "jpaSessionRepo") JPASessionRepo jpaSessionRepo) {
+    public CustomLogoutHandler(@Qualifier(value = "jpaSessionRepo") JPASessionRepo jpaSessionRepo) {
         this.jpaSessionRepo = jpaSessionRepo;
     }
 

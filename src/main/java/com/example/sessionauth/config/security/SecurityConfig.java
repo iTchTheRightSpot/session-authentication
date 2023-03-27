@@ -1,5 +1,6 @@
 package com.example.sessionauth.config.security;
 
+import com.example.sessionauth.session.CustomMapSession;
 import com.example.sessionauth.session.JPASessionRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -14,12 +15,12 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.session.FindByIndexNameSessionRepository;
 import org.springframework.session.Session;
+import org.springframework.session.SessionRepository;
 import org.springframework.session.security.SpringSessionBackedSessionRegistry;
 
 import static org.springframework.security.config.http.SessionCreationPolicy.IF_REQUIRED;
@@ -29,14 +30,19 @@ import static org.springframework.security.config.http.SessionCreationPolicy.IF_
 @EnableMethodSecurity
 public class SecurityConfig {
     private final AuthenticationProvider customAuthProvided;
+
     private final FindByIndexNameSessionRepository<? extends Session> sessionRepository;
+//    private final FindByIndexNameSessionRepository<? extends Session> sessionRepository;
+
     private final JPASessionRepo jpaSessionRepo;
+
     private final AuthenticationEntryPoint authEntryPoint;
 
     @Autowired
     public SecurityConfig(
             @Qualifier(value = "authProvider") AuthenticationProvider customAuthProvided,
             FindByIndexNameSessionRepository<? extends Session> sessionRepository,
+//            SessionRepository<CustomMapSession> sessionRepository,
             @Qualifier(value = "jpaSessionRepo") JPASessionRepo jpaSessionRepo,
             @Qualifier(value = "authEntryPoint") AuthenticationEntryPoint authEntryPoint
     ) {

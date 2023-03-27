@@ -73,7 +73,7 @@ public class AuthController {
      * @return String
      * **/
     @GetMapping(path = "/authenticated")
-    @PreAuthorize(value = "hasRole('ADMIN')")
+    @PreAuthorize(value = "hasAuthority('ADMIN')")
     @ResponseStatus(HttpStatus.OK)
     public String getAuthenticated(Authentication authentication) {
         return "Admin name is " + authentication.getName();

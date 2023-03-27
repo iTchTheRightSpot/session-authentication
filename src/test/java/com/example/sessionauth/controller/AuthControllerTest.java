@@ -10,22 +10,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 
 import java.util.Objects;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.authenticated;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -81,6 +77,21 @@ class AuthControllerTest {
     }
 
     @Test
+    void loginEmployee() throws Exception {
+        var employeeDTO = new EmployeeDTO();
+        employeeDTO.setEmail(adminEmail);
+        employeeDTO.setPassword("password");
+
+        this.mockMvc
+                .perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(employeeDTO.convertToJSON().toString())
+                )
+                .andDo(print())
+                .andExpect(status().isOk());
+    }
+
+    @Test
     void sign_up_using_existing_email() throws Exception {
         // Given
         var employeeDTO = new EmployeeDTO();
@@ -106,32 +117,13 @@ class AuthControllerTest {
                 );
     }
 
-    @Test
-    void loginEmployee() throws Exception {
-        var employeeDTO = new EmployeeDTO();
-        employeeDTO.setEmail(adminEmail);
-        employeeDTO.setPassword("password");
-
-        this.mockMvc
-                .perform(post("/api/v1/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(employeeDTO.convertToJSON().toString())
-                )
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(content().string("Successfully signed in"));
-    }
-
     // TODO
     // Test verifies constraint set in maxSession in the SecurityFilterChain is doing its job
     @Test
-    void test_max_session_for_multiple_login_request() throws Exception {
-        // Given
-
-    }
+    void test_max_session_for_multiple_login_request() throws Exception { }
 
     @Test
-    @WithMockUser(username = "admin@admin.com", password = "password", roles = {"ADMIN", "EMPLOYEE"})
+    @WithMockUser(username = "admin@admin.com", password = "password", authorities = {"ADMIN", "EMPLOYEE"})
     void role_admin_access_protected_route() throws Exception {
         this.mockMvc
                 .perform(get("/api/v1/auth/authenticated"))
@@ -140,7 +132,7 @@ class AuthControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "test@test.com", password = "password", roles = {"EMPLOYEE"})
+    @WithMockUser(username = "test@test.com", password = "password", authorities = {"EMPLOYEE"})
     void role_employee_access_role_admin_route() throws Exception {
         this.mockMvc
                 .perform(get("/api/v1/auth/authenticated"))
@@ -166,6 +158,5 @@ class AuthControllerTest {
                 )
                 .andExpect(jsonPath("$.httpStatus").value("UNAUTHORIZED"));
     }
-
 
 }
