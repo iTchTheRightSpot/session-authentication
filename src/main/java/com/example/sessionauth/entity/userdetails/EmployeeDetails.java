@@ -6,6 +6,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public record EmployeeDetails(Employee employee) implements UserDetails {
@@ -14,11 +15,10 @@ public record EmployeeDetails(Employee employee) implements UserDetails {
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return this
                 .employee
-                .getRoles()
-                .stream()
-                .map(role -> new SimpleGrantedAuthority(role.getRoleEnum().toString()))
+                .getRoles() //
+                .stream() //
+                .map(role -> new SimpleGrantedAuthority(role.getRoleEnum().toString())) //
                 .collect(Collectors.toSet());
-
     }
 
     @Override
@@ -33,22 +33,41 @@ public record EmployeeDetails(Employee employee) implements UserDetails {
 
     @Override
     public boolean isAccountNonExpired() {
-        return this.employee.isAccountNonExpired();
+        return this.employee.getAccountNonExpired();
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return this.employee.isLocked();
+        return this.employee.getLocked();
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return this.employee.isCredentialsNonExpired();
+        return this.employee.getCredentialsNonExpired();
     }
 
     @Override
     public boolean isEnabled() {
         return employee.getEnabled();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof UserDetails
+                && this.employee.getEmail().equals(((UserDetails) obj).getUsername())
+                && this.employee.getPassword().equals(((UserDetails) obj).getPassword())
+                && this.employee.getEnabled().equals(((UserDetails) obj).isEnabled())
+                && Objects.equals(this.employee.getLocked(), ((UserDetails) obj).isAccountNonLocked())
+                && Objects.equals(this.employee.getAccountNonExpired(), ((UserDetails) obj).isAccountNonExpired())
+                && Objects.equals(this.employee.getCredentialsNonExpired(), ((UserDetails) obj).isCredentialsNonExpired())
+                && this.employee.getAuthorities().equals(((UserDetails) obj).getAuthorities());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(employee.getEmail(), employee.getPassword(), employee.getEnabled(),
+                employee.getLocked(), employee.getAccountNonExpired(), employee.getCredentialsNonExpired(),
+                employee.getAuthorities());
     }
 
 }

@@ -53,6 +53,12 @@ public class SpringSession {
         sessionAttributes.setSpringSession(this);
     }
 
+    /**
+     * Method is responsible for adding SessionAttributes to attributes it is called in CustomFindIndexRepo
+     *
+     * @param sessionAttributes
+     * @return void
+     * */
     public void addAttribute(SessionAttributes sessionAttributes) {
         this.attributes.add(sessionAttributes);
         sessionAttributes.setSpringSession(this);

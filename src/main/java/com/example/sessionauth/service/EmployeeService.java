@@ -6,8 +6,7 @@ import com.example.sessionauth.entity.Role;
 import com.example.sessionauth.enumeration.RoleEnum;
 import com.example.sessionauth.repository.EmployeeRepo;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -16,8 +15,8 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class EmployeeService {
-    private final static Logger LOGGER = LoggerFactory.getLogger(EmployeeService.class);
     @Value(value = "${admin.email}")
     private String adminEmail;
 
@@ -65,7 +64,7 @@ public class EmployeeService {
             employee.addRole(new Role(RoleEnum.ADMIN));
         }
 
-        LOGGER.info("New Employee saved");
+        log.info("New Employee saved");
         employeeRepository.save(employee);
     }
 

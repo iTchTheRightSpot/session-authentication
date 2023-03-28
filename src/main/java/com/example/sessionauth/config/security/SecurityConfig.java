@@ -1,6 +1,5 @@
 package com.example.sessionauth.config.security;
 
-import com.example.sessionauth.session.CustomMapSession;
 import com.example.sessionauth.session.JPASessionRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -20,7 +19,6 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.session.FindByIndexNameSessionRepository;
 import org.springframework.session.Session;
-import org.springframework.session.SessionRepository;
 import org.springframework.session.security.SpringSessionBackedSessionRegistry;
 
 import static org.springframework.security.config.http.SessionCreationPolicy.IF_REQUIRED;
@@ -32,7 +30,6 @@ public class SecurityConfig {
     private final AuthenticationProvider customAuthProvided;
 
     private final FindByIndexNameSessionRepository<? extends Session> sessionRepository;
-//    private final FindByIndexNameSessionRepository<? extends Session> sessionRepository;
 
     private final JPASessionRepo jpaSessionRepo;
 
@@ -42,7 +39,7 @@ public class SecurityConfig {
     public SecurityConfig(
             @Qualifier(value = "authProvider") AuthenticationProvider customAuthProvided,
             FindByIndexNameSessionRepository<? extends Session> sessionRepository,
-//            SessionRepository<CustomMapSession> sessionRepository,
+//            @Qualifier(value = "customFindIndexRepo") FindByIndexNameSessionRepository<? extends Session> sessionRepository,
             @Qualifier(value = "jpaSessionRepo") JPASessionRepo jpaSessionRepo,
             @Qualifier(value = "authEntryPoint") AuthenticationEntryPoint authEntryPoint
     ) {
@@ -59,7 +56,7 @@ public class SecurityConfig {
     @Bean
     public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
         AuthenticationManagerBuilder managerBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
-        managerBuilder.authenticationProvider(customAuthProvided);
+        managerBuilder.authenticationProvider(this.customAuthProvided);
         return managerBuilder.build();
     }
 
@@ -110,7 +107,7 @@ public class SecurityConfig {
      * **/
     @Bean
     public SpringSessionBackedSessionRegistry<? extends Session> sessionRegistry() {
-        return new SpringSessionBackedSessionRegistry<>(sessionRepository);
+        return new SpringSessionBackedSessionRegistry<>(this.sessionRepository);
     }
 
 }

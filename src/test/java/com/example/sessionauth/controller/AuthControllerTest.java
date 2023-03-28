@@ -2,6 +2,7 @@ package com.example.sessionauth.controller;
 
 import com.example.sessionauth.dto.EmployeeDTO;
 import com.example.sessionauth.service.EmployeeService;
+import jakarta.servlet.http.Cookie;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -11,17 +12,20 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 
 import java.util.Objects;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.authenticated;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -117,10 +121,107 @@ class AuthControllerTest {
                 );
     }
 
-    // TODO
-    // Test verifies constraint set in maxSession in the SecurityFilterChain is doing its job
+
+    /**
+     * This test simulates a user login in from two separate browsers. The expected behaviour should be
+     * requests made from browser 1 should return a 401 because Concurrent session management is set to a max of 1
+     * but of course this test case fails because Concurrent session management is not taken effect in the filter chain.
+     * <p>
+     * Now if you are to uncomment line 162 - 167 and comment line 169 - 177, test would pass. Which justifies my issue
+     * */
     @Test
-    void test_max_session_for_multiple_login_request() throws Exception { }
+    void test_max_session_for_multiple_login_request() throws Exception {
+        var employeeDTO = new EmployeeDTO();
+        employeeDTO.setEmail(adminEmail);
+        employeeDTO.setPassword("password");
+
+        // Simulate login from browser 1
+        MvcResult firstLogin = this.mockMvc
+                .perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(employeeDTO.convertToJSON().toString())
+                )
+                .andExpect(status().isOk())
+                .andReturn();
+
+        // Simulate login from browser 2
+        MvcResult secondLogin = this.mockMvc
+                .perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(employeeDTO.convertToJSON().toString())
+                )
+                .andExpect(status().isOk())
+                .andReturn();
+
+        // Required a valid cookies to access route /api/v1/auth/authenticated
+        // Subsequent requests made from browser 1 should return a 401 because max session in session management
+        // is set to 1, but it returns a 200
+        Cookie cookie1 = firstLogin.getResponse().getCookie("JSESSIONID");
+        assert cookie1 != null;
+
+//        this.mockMvc
+//                .perform(get("/api/v1/auth/authenticated")
+//                        .cookie(cookie2)
+//                )
+//                .andExpect(status().isOk())
+//                .andExpect(content().string("Admin name is " + adminEmail));
+
+        this.mockMvc
+                .perform(get("/api/v1/auth/authenticated")
+                        .cookie(cookie1)
+                )
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.message")
+                        .value("Full authentication is required to access this resource")
+                )
+                .andExpect(jsonPath("$.httpStatus").value("UNAUTHORIZED"));
+
+
+        // Should return a status 200 because it is the most recent login
+        Cookie cookie2 = secondLogin.getResponse().getCookie("JSESSIONID");
+        assert cookie2 != null;
+        this.mockMvc
+                .perform(get("/api/v1/auth/authenticated")
+                        .cookie(cookie2)
+                )
+                .andExpect(status().isOk())
+                .andExpect(content().string("Admin name is " + adminEmail));
+    }
+
+
+    /**
+     *
+     *
+     *
+     * */
+    @Test
+    void validate_logout_route() throws Exception {
+        // Given
+        var employeeDTO = new EmployeeDTO();
+        employeeDTO.setEmail(adminEmail);
+        employeeDTO.setPassword("password");
+
+        // When
+        MvcResult login = this.mockMvc
+                .perform(
+                        post("/api/v1/auth/login")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(employeeDTO.convertToJSON().toString())
+                )
+                .andExpect(status().isOk())
+                .andReturn();
+
+        // Cookie
+        Cookie cookie = login.getResponse().getCookie("JSESSIONID");
+        assert cookie != null;
+
+        this.mockMvc
+                .perform(get("/api/v1/auth/logout")
+                        .cookie(cookie)
+                )
+                .andExpect(status().isOk());
+    }
+
 
     @Test
     @WithMockUser(username = "admin@admin.com", password = "password", authorities = {"ADMIN", "EMPLOYEE"})

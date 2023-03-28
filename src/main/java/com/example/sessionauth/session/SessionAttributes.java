@@ -17,8 +17,6 @@ import static jakarta.persistence.FetchType.LAZY;
 public class SessionAttributes {
 
     @Id
-    @GenericGenerator(name = "uuid2", strategy = "uuid2")
-    @GeneratedValue(strategy = GenerationType.IDENTITY, generator = "uuid2")
     @Column(name = "SESSION_PRIMARY_ID", length = 36, nullable = false)
     private String sessionPrimaryId;
 
@@ -32,7 +30,13 @@ public class SessionAttributes {
 
     @ManyToOne(fetch = LAZY)
     @MapsId
-    @JoinColumn(name = "SESSION_PRIMARY_ID", referencedColumnName = "PRIMARY_ID", nullable = false)
+    @JoinColumn(
+            name = "SESSION_PRIMARY_ID",
+            referencedColumnName = "PRIMARY_ID",
+            nullable = false,
+            foreignKey = @ForeignKey(name = "SPRING_SESSION_ATTRIBUTES_FK")
+
+    )
     private SpringSession springSession;
 
 }

@@ -4,6 +4,7 @@ import com.example.sessionauth.dto.EmployeeDTO;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -21,6 +22,7 @@ public class AuthService {
     private final SecurityContextHolderStrategy securityContextHolderStrategy;
     private final AuthenticationManager authManager;
 
+    @Autowired
     public AuthService(AuthenticationManager authManager) {
         this.authManager = authManager;
         this.securityContextRepository = new HttpSessionSecurityContextRepository();
