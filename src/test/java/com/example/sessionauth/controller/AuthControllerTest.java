@@ -125,7 +125,7 @@ class AuthControllerTest {
     /**
      * This test simulates a user login in from two separate browsers. The expected behaviour should be
      * requests made from browser 1 should return a 401 because Concurrent session management is set to a max of 1
-     * but of course this test case fails because Concurrent session management is not taken effect in the filter chain.
+     * but this test case fails because Concurrent session management is not taken effect in the filter chain.
      * <p>
      * Now if you are to uncomment line 162 - 167 and comment line 169 - 177, test would pass. Which justifies my issue
      * */
