@@ -1,6 +1,5 @@
 package com.example.sessionauth.config.security;
 
-import com.example.sessionauth.session.JPASessionRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -31,21 +30,16 @@ public class SecurityConfig {
 
     private final FindByIndexNameSessionRepository<? extends Session> sessionRepository;
 
-    private final JPASessionRepo jpaSessionRepo;
-
     private final AuthenticationEntryPoint authEntryPoint;
 
     @Autowired
     public SecurityConfig(
             @Qualifier(value = "authProvider") AuthenticationProvider customAuthProvided,
             FindByIndexNameSessionRepository<? extends Session> sessionRepository,
-//            @Qualifier(value = "customFindIndexRepo") FindByIndexNameSessionRepository<? extends Session> sessionRepository,
-            @Qualifier(value = "jpaSessionRepo") JPASessionRepo jpaSessionRepo,
             @Qualifier(value = "authEntryPoint") AuthenticationEntryPoint authEntryPoint
     ) {
         this.customAuthProvided = customAuthProvided;
         this.sessionRepository = sessionRepository;
-        this.jpaSessionRepo = jpaSessionRepo;
         this.authEntryPoint = authEntryPoint;
     }
 
@@ -82,14 +76,13 @@ public class SecurityConfig {
                         .logoutUrl("/api/v1/auth/logout")
                         .invalidateHttpSession(true) // Invalidate all sessions after logout
                         .deleteCookies("JSESSIONID")
-                        .addLogoutHandler(new CustomLogoutHandler(this.jpaSessionRepo))
+                        .addLogoutHandler(new CustomLogoutHandler(this.sessionRepository))
                         .logoutSuccessHandler((request, response, authentication) ->
                                 SecurityContextHolder.clearContext()
                         )
                 )
                 .build();
     }
-
 
     /**
      * Method allows placing constraints on a single user’s ability to log in to your application
