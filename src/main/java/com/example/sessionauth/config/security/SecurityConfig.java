@@ -2,6 +2,7 @@ package com.example.sessionauth.config.security;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -22,10 +23,12 @@ import org.springframework.session.security.SpringSessionBackedSessionRegistry;
 
 import static org.springframework.security.config.http.SessionCreationPolicy.IF_REQUIRED;
 
-@Configuration
-@EnableWebSecurity
-@EnableMethodSecurity
+@Configuration @EnableWebSecurity @EnableMethodSecurity
 public class SecurityConfig {
+
+    @Value(value = "${custom.max.session}")
+    private int maxSession;
+
     private final AuthenticationProvider customAuthProvided;
 
     private final FindByIndexNameSessionRepository<? extends Session> sessionRepository;
@@ -43,7 +46,6 @@ public class SecurityConfig {
         this.authEntryPoint = authEntryPoint;
     }
 
-
     /**
      * Method is responsible for using custom DB
      * **/
@@ -57,7 +59,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
-                .csrf(AbstractHttpConfigurer::disable) // To implement csrf visit spring security
+                .csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(auth -> {
                     auth.requestMatchers("/api/v1/auth/signup", "/api/v1/auth/login").permitAll();
@@ -66,7 +68,8 @@ public class SecurityConfig {
                 .sessionManagement(sessionManagement -> sessionManagement
                         .sessionCreationPolicy(IF_REQUIRED) //
                         .sessionFixation((sessionFixation) -> sessionFixation.newSession()) //
-                        .maximumSessions(1) //
+                        // Max session and session registry can be removed as we are handling this in AuthService
+                        .maximumSessions(maxSession) //
                         .sessionRegistry(sessionRegistry())
                 )
                 .exceptionHandling((ex) ->
@@ -95,7 +98,7 @@ public class SecurityConfig {
     }
 
     /**
-     * Maintains a registry of SessionInformation instances. For better understanding visit
+     * Maintains a registry of Session information instances. For better understanding visit
      * <a href="https://github.com/spring-projects/spring-session/blob/main/spring-session-docs/modules/ROOT/examples/java/docs/security/SecurityConfiguration.java">...</a>
      * **/
     @Bean

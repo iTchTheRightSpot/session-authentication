@@ -25,8 +25,8 @@ git clone git@github.com:emmanuelU17/restful-session-authentication.git
 ### Description
 This project implements session authentication for a web application using Spring Security and MySQL as the session 
 storage. Users can sign up and log in using their email and password, and access different parts of the application 
-based on their role. The project also includes a custom entity object that maps to the Spring Session schema for easier 
-integration.
+based on their role. This project also includes using Spring Security Session schema for building the right schema for
+storing sessions and attributes.
 
 ### Features
 * Session authentication: Users can log in and out of the application, and their sessions are stored in a MySQL 
@@ -41,8 +41,7 @@ integration.
 * Integration test
 
 ### TO IMPLEMENT
-* Maximum session (set a constraint on use session).
-* Integration test to verify constraint set based on maxSession in the SecurityFilterChain
+* Integration test to verify session fixation set in the SecurityFilterChain
 
 ### Dependencies
 * [Spring Configuration Processor](https://docs.spring.io/spring-boot/docs/3.0.4/reference/htmlsingle/#appendix.configuration-metadata.annotation-processor)

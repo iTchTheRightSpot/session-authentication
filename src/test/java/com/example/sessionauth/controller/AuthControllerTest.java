@@ -1,7 +1,6 @@
 package com.example.sessionauth.controller;
 
 import com.example.sessionauth.dto.EmployeeDTO;
-import com.example.sessionauth.service.EmployeeService;
 import jakarta.servlet.http.Cookie;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,8 +13,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.session.FindByIndexNameSessionRepository;
-import org.springframework.session.Session;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -31,7 +28,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
@@ -43,29 +39,16 @@ class AuthControllerTest {
     @Value(value = "${admin.email}")
     private String adminEmail;
 
-    @Value(value = "${employee.email}")
-    private String employeeEmail;
-
     @Autowired
     private MockMvc mockMvc;
 
-    @Autowired
-    private EmployeeService employeeService;
-
-    @Autowired
-    private FindByIndexNameSessionRepository<? extends Session> sessionRepository;
+    private EmployeeDTO employeeDTO;
 
     @BeforeEach
     public void setUp() {
-        // Role -> ADMIN
-//        var employeeDTO = new EmployeeDTO();
-//        employeeDTO.setEmail(adminEmail);
-//        employeeDTO.setPassword("password");
-//        this.employeeService.signupEmployee(employeeDTO);
-//
-//        // Role -> EMPLOYEE
-//        employeeDTO.setEmail(employeeEmail);
-//        this.employeeService.signupEmployee(employeeDTO);
+        this.employeeDTO = new EmployeeDTO();
+        employeeDTO.setEmail(adminEmail);
+        employeeDTO.setPassword("password");
     }
 
     @Test
@@ -85,10 +68,6 @@ class AuthControllerTest {
 
     @Test
     void loginEmployee() throws Exception {
-        var employeeDTO = new EmployeeDTO();
-        employeeDTO.setEmail(adminEmail);
-        employeeDTO.setPassword("password");
-
         this.mockMvc
                 .perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -126,22 +105,16 @@ class AuthControllerTest {
 
     /**
      * This test simulates a user login in from two separate browsers. The expected behaviour should be
-     * requests made from browser 1 should return a 401 because Concurrent session management is set to a max of 1
-     * but this test case fails because Concurrent session management is not taken effect in the filter chain.
-     * <p>
-     * Now if you are to uncomment line 162 - 167 and comment line 169 - 177, test would pass. Which justifies my issue
+     * requests made from browser 1 should return a 401 because Concurrent session management is set to a max of 1 in
+     * application properties
      * */
     @Test
     void test_max_session_for_multiple_login_request() throws Exception {
-        var employeeDTO = new EmployeeDTO();
-        employeeDTO.setEmail(adminEmail);
-        employeeDTO.setPassword("password");
-
         // Simulate login from browser 1
         MvcResult firstLogin = this.mockMvc
                 .perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(employeeDTO.convertToJSON().toString())
+                        .content(this.employeeDTO.convertToJSON().toString())
                 )
                 .andExpect(status().isOk())
                 .andReturn();
@@ -160,7 +133,7 @@ class AuthControllerTest {
         this.mockMvc
                 .perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(employeeDTO.convertToJSON().toString())
+                        .content(this.employeeDTO.convertToJSON().toString())
                 )
                 .andExpect(status().isOk());
 
@@ -177,17 +150,12 @@ class AuthControllerTest {
     
     @Test
     void validate_logout_route() throws Exception {
-        // Given
-        var employeeDTO = new EmployeeDTO();
-        employeeDTO.setEmail(adminEmail);
-        employeeDTO.setPassword("password");
-
         // When
         MvcResult login = this.mockMvc
                 .perform(
                         post("/api/v1/auth/login")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(employeeDTO.convertToJSON().toString())
+                                .content(this.employeeDTO.convertToJSON().toString())
                 )
                 .andExpect(status().isOk())
                 .andReturn();

@@ -9,12 +9,16 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
-@Configuration
-@Profile(value = "dev")
+/**
+ * Class is needed for integration test
+ * */
+@Configuration @Profile(value = "dev")
 public class Dummy {
     @Value("${admin.email}")
     private String email;
+
     private final EmployeeService employeeService;
+
 
     @Autowired
     public Dummy(EmployeeService employeeService) {
