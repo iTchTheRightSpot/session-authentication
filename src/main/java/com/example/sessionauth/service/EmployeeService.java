@@ -25,10 +25,10 @@ public class EmployeeService {
 
 
     /**
-     * Returns an employee object based on employeeEmail
+     * Returns an employee object based on employee email
      *
      * @param employeeEmail
-     * @throws RuntimeException
+     * @throws IllegalStateException
      * @return Employee
      * **/
     public Employee findEmployeeByEmail(String employeeEmail) {
