@@ -106,4 +106,10 @@ public class SecurityConfig {
         return new SpringSessionBackedSessionRegistry<>(this.sessionRepository);
     }
 
+    /** A SecurityContextRepository implementation which stores the security context in the HttpSession between requests. */
+    @Bean
+    SecurityContextRepository securityContextRepository () {
+      return new HttpSessionSecurityContextRepository();
+    }
+
 }
