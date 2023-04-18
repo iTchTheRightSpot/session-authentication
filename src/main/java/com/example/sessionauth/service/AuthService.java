@@ -42,12 +42,13 @@ public class AuthService {
     public AuthService(
             AuthenticationManager authManager,
             FindByIndexNameSessionRepository<? extends Session> sessionRepository,
-            SessionRegistry sessionRegistry
+            SessionRegistry sessionRegistry,
+            SecurityContextRepository securityContextRepository
     ) {
         this.authManager = authManager;
         this.sessionRepository = sessionRepository;
         this.sessionRegistry = sessionRegistry;
-        this.securityContextRepository = new HttpSessionSecurityContextRepository();
+        this.securityContextRepository = this.securityContextRepository;
         this.securityContextHolderStrategy = SecurityContextHolder.getContextHolderStrategy();
     }
 
