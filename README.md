@@ -25,23 +25,22 @@ git clone git@github.com:emmanuelU17/restful-session-authentication.git
 
 ### Description
 This project implements session authentication for a web application using Spring Security and MySQL as the session 
-storage. Users can sign up and log in using their email and password, and access different parts of the application 
-based on their role. This project also includes using Spring Security Session schema for building the right schema for
-storing sessions and attributes.
+storage. Users can register and log in using their email and password, and access different parts of the application 
+based on their role. This project also includes using JPA to build schema for User & Role Objects, using Spring 
+Security recommended schema for storing sessions and attributes and finally using test containers to validate
+functionalities.
 
 ### Features
-* Session authentication: Users can log in and out of the application, and their sessions are stored in a MySQL 
-  database for persistence across multiple requests.
-* Email and password authentication: Users can create an account with their email and password, and log in securely 
-  using Spring Security.
-* Role-based authorization: Different parts of the application can be restricted to certain roles, such as employee,
-  admin or anonymous.
-* Using spring security recommended schema for Session to create an Entity class for SpringSession and 
-  SpringSessionAttributes. https://github.com/spring-projects/spring-session/blob/main/spring-session-jdbc/src/main/resources/org/springframework/session/jdbc/schema-mysql.sql
-* Logout
-* Integration test
+* Register, Login and Logout using restful APIs.
+* Email and password authentication
+* Accessibility to routes/APIs based on roles (Authorization)
+* Using spring security recommended schema for jdbc sessions
+  https://github.com/spring-projects/spring-session/blob/main/spring-session-jdbc/src/main/resources/org/springframework/session/jdbc/schema-mysql.sql
+* Integration test using test containers
 
 ### TO IMPLEMENT
+* Frontend to validate visual functionality (Angular)
+* CSRF protection
 * Integration test to verify session fixation set in the SecurityFilterChain
 
 ### Dependencies

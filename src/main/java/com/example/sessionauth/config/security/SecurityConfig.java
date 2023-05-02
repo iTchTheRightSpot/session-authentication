@@ -1,6 +1,5 @@
 package com.example.sessionauth.config.security;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -20,6 +19,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.session.FindByIndexNameSessionRepository;
 import org.springframework.session.Session;
@@ -41,7 +42,6 @@ public class SecurityConfig {
 
     private final UserDetailsService detailsService;
 
-    @Autowired
     public SecurityConfig(
             FindByIndexNameSessionRepository<? extends Session> sessionRepository,
             PasswordEncoder passwordEncoder,
@@ -114,6 +114,12 @@ public class SecurityConfig {
     @Bean
     public SpringSessionBackedSessionRegistry<? extends Session> sessionRegistry() {
         return new SpringSessionBackedSessionRegistry<>(this.sessionRepository);
+    }
+
+    /** A SecurityContextRepository implementation which stores the security context in the HttpSession between requests. */
+    @Bean
+    public SecurityContextRepository securityContextRepository() {
+      return new HttpSessionSecurityContextRepository();
     }
 
 }

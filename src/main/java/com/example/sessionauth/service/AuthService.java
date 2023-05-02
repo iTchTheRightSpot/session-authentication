@@ -8,7 +8,6 @@ import com.example.sessionauth.repository.EmployeeRepo;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -20,7 +19,6 @@ import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.session.FindByIndexNameSessionRepository;
 import org.springframework.session.Session;
@@ -56,20 +54,20 @@ public class AuthService {
 
     private final SessionRegistry sessionRegistry;
 
-    @Autowired
     public AuthService(
             EmployeeRepo employeeRepository,
             PasswordEncoder passwordEncoder,
             AuthenticationManager authManager,
             FindByIndexNameSessionRepository<? extends Session> sessionRepository,
-            SessionRegistry sessionRegistry
+            SessionRegistry sessionRegistry,
+            SecurityContextRepository securityContextRepository
     ) {
         this.employeeRepository = employeeRepository;
         this.passwordEncoder = passwordEncoder;
         this.authManager = authManager;
         this.sessionRepository = sessionRepository;
         this.sessionRegistry = sessionRegistry;
-        this.securityContextRepository = new HttpSessionSecurityContextRepository();
+        this.securityContextRepository = securityContextRepository;
         this.securityContextHolderStrategy = SecurityContextHolder.getContextHolderStrategy();
     }
 

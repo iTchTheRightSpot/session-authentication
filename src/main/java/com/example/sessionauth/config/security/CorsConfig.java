@@ -16,13 +16,10 @@ public class CorsConfig {
 
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
-        List<String> allowedHeaders = List
-                .of(CONTENT_TYPE); // AUTHORIZATION, "X-XSRF-TOKEN"
-
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:4200/"));
+        configuration.setAllowedOrigins(List.of("http://localhost:4200/")); // Angular
         configuration.setAllowedMethods(Arrays.asList("GET", "PUT", "POST", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(allowedHeaders);
+        configuration.setAllowedHeaders(List.of(CONTENT_TYPE));
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
