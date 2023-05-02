@@ -1,16 +1,16 @@
 version: '3.9'
 services:
   # MySQL server
-  session-db-server:
+  db-server:
     image: "mysql:latest"
-    container_name: session-db-server
+    container_name: db-server
     ports:
-      - "3304:3306"
+      - "3306:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: session
       MYSQL_DATABASE: session_db
-      MYSQL_USER: root
-      MYSQL_PASSWORD: root
+      MYSQL_USER: session
+      MYSQL_PASSWORD: session
     healthcheck:
       test: [ "CMD-SHELL", "mysqladmin ping -h localhost" ]
       interval: 10s
@@ -18,15 +18,15 @@ services:
       retries: 5
 
   # Back-end Spring Boot server
-  back-end-server:
-    image: "session-auth:0.0.1-SNAPSHOT"
-    container_name: back-end-server
-    ports:
-      - "8080:8080"
-    environment:
-      spring.datasource.url: jdbc:mysql://session-db-server:3306/session_db
-      spring.datasource.username: root
-      spring.datasource.password: root
-    depends_on:
-      session-db-server:
-        condition: service_healthy
+#  back-end-server:
+#    image: "session-auth:0.0.1-SNAPSHOT"
+#    container_name: back-end-server
+#    ports:
+#      - "8080:8080"
+#    environment:
+#      spring.datasource.url: jdbc:mysql://session-db-server:3306/session_db
+#      spring.datasource.username: root
+#      spring.datasource.password: root
+#    depends_on:
+#      session-db-server:
+#        condition: service_healthy

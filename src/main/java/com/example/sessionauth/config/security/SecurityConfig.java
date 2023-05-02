@@ -7,13 +7,17 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.SessionManagementConfigurer;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
@@ -29,31 +33,38 @@ public class SecurityConfig {
     @Value(value = "${custom.max.session}")
     private int maxSession;
 
-    private final AuthenticationProvider customAuthProvided;
-
     private final FindByIndexNameSessionRepository<? extends Session> sessionRepository;
+
+    private final PasswordEncoder passwordEncoder;
 
     private final AuthenticationEntryPoint authEntryPoint;
 
+    private final UserDetailsService detailsService;
+
     @Autowired
     public SecurityConfig(
-            @Qualifier(value = "authProvider") AuthenticationProvider customAuthProvided,
             FindByIndexNameSessionRepository<? extends Session> sessionRepository,
-            @Qualifier(value = "authEntryPoint") AuthenticationEntryPoint authEntryPoint
+            PasswordEncoder passwordEncoder,
+            @Qualifier(value = "authEntryPoint") AuthenticationEntryPoint authEntryPoint,
+            @Qualifier(value = "detailService") UserDetailsService detailsService
     ) {
-        this.customAuthProvided = customAuthProvided;
         this.sessionRepository = sessionRepository;
+        this.passwordEncoder = passwordEncoder;
         this.authEntryPoint = authEntryPoint;
+        this.detailsService = detailsService;
     }
 
-    /**
-     * Method is responsible for using custom DB
-     * **/
     @Bean
-    public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
-        AuthenticationManagerBuilder managerBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
-        managerBuilder.authenticationProvider(this.customAuthProvided);
-        return managerBuilder.build();
+    public AuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setPasswordEncoder(this.passwordEncoder);
+        provider.setUserDetailsService(this.detailsService);
+        return provider;
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager() {
+        return new ProviderManager(authenticationProvider());
     }
 
     @Bean
@@ -67,8 +78,7 @@ public class SecurityConfig {
                 })
                 .sessionManagement(sessionManagement -> sessionManagement
                         .sessionCreationPolicy(IF_REQUIRED) //
-                        .sessionFixation((sessionFixation) -> sessionFixation.newSession()) //
-                        // Max session and session registry can be removed as we are handling this in AuthService
+                        .sessionFixation(SessionManagementConfigurer.SessionFixationConfigurer::newSession) //
                         .maximumSessions(maxSession) //
                         .sessionRegistry(sessionRegistry())
                 )

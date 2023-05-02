@@ -1,6 +1,10 @@
 package com.example.sessionauth.service;
 
 import com.example.sessionauth.dto.EmployeeDTO;
+import com.example.sessionauth.entity.Employee;
+import com.example.sessionauth.entity.Role;
+import com.example.sessionauth.enumeration.RoleEnum;
+import com.example.sessionauth.repository.EmployeeRepo;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -14,19 +18,33 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextHolderStrategy;
 import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.session.FindByIndexNameSessionRepository;
 import org.springframework.session.Session;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 @Service @Slf4j
 public class AuthService {
 
     @Value(value = "${custom.max.session}")
     private int maxSession;
+
+    @Value(value = "${admin.email}")
+    private String adminEmail;
+
+    @Value("${employee.email}")
+    private String test;
+
+    private final EmployeeRepo employeeRepository;
+
+    private final PasswordEncoder passwordEncoder;
 
     private final SecurityContextRepository securityContextRepository;
 
@@ -40,15 +58,60 @@ public class AuthService {
 
     @Autowired
     public AuthService(
+            EmployeeRepo employeeRepository,
+            PasswordEncoder passwordEncoder,
             AuthenticationManager authManager,
             FindByIndexNameSessionRepository<? extends Session> sessionRepository,
             SessionRegistry sessionRegistry
     ) {
+        this.employeeRepository = employeeRepository;
+        this.passwordEncoder = passwordEncoder;
         this.authManager = authManager;
         this.sessionRepository = sessionRepository;
         this.sessionRegistry = sessionRegistry;
         this.securityContextRepository = new HttpSessionSecurityContextRepository();
         this.securityContextHolderStrategy = SecurityContextHolder.getContextHolderStrategy();
+    }
+
+
+    /**
+     * Method responsible for registering an employee
+     *
+     * @param dto
+     * @throws IllegalStateException
+     * @return String
+     * **/
+    public String register(EmployeeDTO dto) {
+        String email = dto.getEmail().trim();
+        String password = dto.getPassword().trim();
+
+        Optional<Employee> exists = employeeRepository
+                .findByPrincipal(email);
+
+        if (exists.isPresent()) {
+            throw new IllegalStateException(email + " already exists");
+        }
+
+        var employee = new Employee();
+        employee.setEmail(email);
+        employee.setPassword(passwordEncoder.encode(password));
+        employee.setLocked(true); // true if not locked
+        employee.setAccountNonExpired(true);
+        employee.setCredentialsNonExpired(true);
+        employee.setEnabled(false); // false for email validation
+        employee.addRole(new Role(RoleEnum.EMPLOYEE));
+
+        if (adminEmail.equals(email)) {
+            employee.addRole(new Role(RoleEnum.ADMIN));
+        }
+
+        if (dto.getEmail().trim().equals(adminEmail) || dto.getEmail().trim().equals(test)) {
+            employee.setEnabled(true);
+        }
+
+        log.info("New Employee saved");
+        employeeRepository.save(employee);
+        return "CREATED";
     }
 
     /**
@@ -66,7 +129,6 @@ public class AuthService {
             HttpServletRequest request,
             HttpServletResponse response
     ) {
-        log.info("Login service called {}", AuthService.class);
         String email = dto.getEmail().trim();
         String password = dto.getPassword();
 
@@ -93,16 +155,23 @@ public class AuthService {
      * @param authentication
      * @return void
      * */
-    public void validateMaxSession(Authentication authentication) {
-        String email = (String) authentication.getPrincipal();
-        List<SessionInformation> sessions = this.sessionRegistry.getAllSessions(email, false);
+    private void validateMaxSession(Authentication authentication) {
+        if (maxSession <= 0) {
+            // If max session is negative means unlimited session
+            return;
+        }
+
+        var principal = (UserDetails) authentication.getPrincipal();
+        List<SessionInformation> sessions = this.sessionRegistry.getAllSessions(principal, false);
 
         if (sessions.size() >= maxSession) {
-            String sessionID = sessions.get(0).getSessionId();
-            Session session = this.sessionRepository.findById(sessionID);
-            if (session != null) {
-                this.sessionRepository.deleteById(sessionID);
-            }
+            sessions
+                    .stream() //
+                    .min(Comparator.comparing(SessionInformation::getLastRequest)) // Gets the oldest session
+                    .ifPresent(sessionInfo -> {
+                        String sessionID = sessionInfo.getSessionId();
+                        this.sessionRepository.deleteById(sessionID);
+                    });
         }
     }
 

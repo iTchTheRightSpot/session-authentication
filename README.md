@@ -2,17 +2,18 @@
 
 ### Prerequisite
 
-- MySQL for Database
+- Docker
 
 ### Quickstart
-To use this project, you'll need a MySQL database and a Java IDE with Maven support. 
-Clone the repository and import the project into your IDE. Modify the database connection details in the 
-application.properties file to match your setup.
+To use this project, you'll need docker to get the latest MySQL DB and Java IDE with Maven support. 
+Clone the repository and import the project into your IDE. 
 
 ```bash or PowerShell
 git clone git@github.com:emmanuelU17/restful-session-authentication.git
 
-'To get the application running' ./mvnw clean package spring-boot:run
+'To get the application running' 
+* docker compose up -d
+* ./mvnw clean spring-boot:run
 
 'Admin employee credential for testing {
   "email" : "admin@admin.com",

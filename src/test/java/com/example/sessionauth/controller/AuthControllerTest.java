@@ -36,6 +36,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Slf4j
 class AuthControllerTest {
 
+    @Value(value = "${custom.max.session}")
+    private int maxSession;
+
     @Value(value = "${admin.email}")
     private String adminEmail;
 
@@ -103,15 +106,15 @@ class AuthControllerTest {
                 );
     }
 
-    /**
-     * This test simulates a user login in from two separate browsers. The expected behaviour should be
-     * requests made from browser 1 should return a 401 because Concurrent session management is set to a max of 1 in
-     * application properties
-     * */
+    /** This test simulates max session set to 1 */
     @Test
     void test_max_session_for_multiple_login_request() throws Exception {
+        if (maxSession != 1) {
+            return;
+        }
+
         // Simulate login from browser 1
-        MvcResult firstLogin = this.mockMvc
+        MvcResult login1 = this.mockMvc
                 .perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(this.employeeDTO.convertToJSON().toString())
@@ -119,7 +122,7 @@ class AuthControllerTest {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        Cookie cookie1 = firstLogin.getResponse().getCookie("JSESSIONID");
+        Cookie cookie1 = login1.getResponse().getCookie("JSESSIONID");
         assert cookie1 != null;
 
         this.mockMvc
@@ -130,13 +133,18 @@ class AuthControllerTest {
                 .andExpect(content().string("Admin name is " + adminEmail));
 
         // Simulate login from browser 2
-        this.mockMvc
+        MvcResult login2 = this.mockMvc
                 .perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(this.employeeDTO.convertToJSON().toString())
                 )
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andReturn();
 
+        Cookie cookie2 = login2.getResponse().getCookie("JSESSIONID");
+        assert cookie2 != null;
+
+        // Expired cookie from browser 1
         this.mockMvc
                 .perform(get("/api/v1/auth/authenticated")
                         .cookie(cookie1)
@@ -146,6 +154,11 @@ class AuthControllerTest {
                         .value("Full authentication is required to access this resource")
                 )
                 .andExpect(jsonPath("$.httpStatus").value("UNAUTHORIZED"));
+
+        // Valid cookie from browser 2
+        this.mockMvc
+                .perform(get("/api/v1/auth/authenticated").cookie(cookie2))
+                .andExpect(status().isOk());
     }
     
     @Test
@@ -172,7 +185,7 @@ class AuthControllerTest {
 
         // Access protected route with invalid cookie
         this.mockMvc
-                .perform(get("/api/v1/auth/authenticated"))
+                .perform(get("/api/v1/auth/authenticated").cookie(cookie))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.message")
                         .value("Full authentication is required to access this resource")

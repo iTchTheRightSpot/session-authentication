@@ -2,12 +2,10 @@ package com.example.sessionauth.controller;
 
 import com.example.sessionauth.dto.EmployeeDTO;
 import com.example.sessionauth.service.AuthService;
-import com.example.sessionauth.service.EmployeeService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,27 +21,22 @@ public class AuthController {
 
     private final AuthService authService;
 
-    private final EmployeeService employeeService;
-
-    @Autowired
-    public AuthController(AuthService authService, EmployeeService employeeService) {
+    public AuthController(AuthService authService) {
         this.authService = authService;
-        this.employeeService = employeeService;
     }
 
     /**
-     * Public APIs needed to sign up employees
+     * Public APIs called when registering an employee
      *
      * @param employeeDTO
      * @return ResponseEntity
      * **/
     @PostMapping(path = "/signup")
-    public ResponseEntity<?> signUpEmployee(@Valid @RequestBody EmployeeDTO employeeDTO) {
+    public ResponseEntity<?> register(@Valid @RequestBody EmployeeDTO employeeDTO) {
         log.info("Employee sign up called from {}", AuthController.class);
-        employeeService.signupEmployee(employeeDTO);
         return ResponseEntity
                 .status(CREATED)
-                .body("CREATED");
+                .body(this.authService.register(employeeDTO));
     }
 
     /**

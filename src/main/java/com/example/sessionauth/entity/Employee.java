@@ -8,6 +8,7 @@ import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Objects;
@@ -17,11 +18,9 @@ import java.util.stream.Collectors;
 import static jakarta.persistence.CascadeType.*;
 import static jakarta.persistence.FetchType.EAGER;
 
-@Table
-@Entity
-@NoArgsConstructor
-@Getter @Setter
-public class Employee {
+@Table(name = "EMPLOYEE") @Entity
+@NoArgsConstructor @Getter @Setter
+public class Employee implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "employee_id")
@@ -35,16 +34,16 @@ public class Employee {
     private String password;
 
     @Column(name = "account_enable")
-    private Boolean enabled = false; // For email validation after signing up
+    private boolean enabled;
 
     @Column(name = "credentials_expired")
-    private Boolean credentialsNonExpired = false;
+    private boolean credentialsNonExpired;
 
     @Column(name = "account_expired")
-    private Boolean accountNonExpired = false;
+    private boolean accountNonExpired;
 
     @Column(name = "account_locked")
-    private Boolean locked = false; // For when an employee quits or is fired
+    private boolean locked;
 
     @JsonIgnore
     @OneToMany(cascade = {PERSIST, MERGE, REMOVE}, fetch = EAGER, mappedBy = "employee", orphanRemoval = true)
@@ -55,32 +54,40 @@ public class Employee {
         role.setEmployee(this);
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Employee employee = (Employee) o;
-        return credentialsNonExpired == employee.credentialsNonExpired
-                && accountNonExpired == employee.accountNonExpired
-                && locked == employee.locked
-                && Objects.equals(employeeID, employee.employeeID)
-                && Objects.equals(email, employee.email)
-                && Objects.equals(password, employee.password)
-                && Objects.equals(enabled, employee.enabled)
-                && Objects.equals(roles, employee.roles);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(employeeID, email, password, enabled, credentialsNonExpired, accountNonExpired, locked, roles);
-    }
-
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return this
                 .roles
                 .stream() //
                 .map(role -> new SimpleGrantedAuthority(role.getRoleEnum().toString()))
                 .collect(Collectors.toSet());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Employee employee)) return false;
+        return isEnabled() == employee.isEnabled()
+                && isCredentialsNonExpired() == employee.isCredentialsNonExpired()
+                && isAccountNonExpired() == employee.isAccountNonExpired()
+                && isLocked() == employee.isLocked()
+                && Objects.equals(getEmployeeID(), employee.getEmployeeID())
+                && Objects.equals(getEmail(), employee.getEmail())
+                && Objects.equals(getPassword(), employee.getPassword())
+                && Objects.equals(getRoles(), employee.getRoles());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(
+                getEmployeeID(),
+                getEmail(),
+                getPassword(),
+                isEnabled(),
+                isCredentialsNonExpired(),
+                isAccountNonExpired(),
+                isLocked(),
+                getRoles()
+        );
     }
 
 }
