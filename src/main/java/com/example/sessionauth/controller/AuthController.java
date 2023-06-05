@@ -1,22 +1,20 @@
 package com.example.sessionauth.controller;
 
-import com.example.sessionauth.dto.EmployeeDTO;
+import com.example.sessionauth.dto.AuthDTO;
 import com.example.sessionauth.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.OK;
 
 @RestController
 @RequestMapping(path = "/api/v1/auth")
-@Slf4j
 public class AuthController {
 
     private final AuthService authService;
@@ -28,34 +26,31 @@ public class AuthController {
     /**
      * Public APIs called when registering an employee
      *
-     * @param employeeDTO
+     * @param authDTO
      * @return ResponseEntity
      * **/
-    @PostMapping(path = "/signup")
-    public ResponseEntity<?> register(@Valid @RequestBody EmployeeDTO employeeDTO) {
-        log.info("Employee sign up called from {}", AuthController.class);
+    @PostMapping(path = "/register")
+    public ResponseEntity<?> register(@Valid @RequestBody AuthDTO authDTO) {
         return ResponseEntity
                 .status(CREATED)
-                .body(this.authService.register(employeeDTO));
+                .body(this.authService.register(authDTO));
     }
 
     /**
      * Public API that allows an employee to login
      *
-     * @param employeeDTO
+     * @param authDTO
      * @param request
      * @param response
      * @return AuthResponse
      * **/
     @PostMapping(path = "/login")
-    @ResponseStatus(HttpStatus.OK)
-    public void loginEmployee(
-            @Valid @RequestBody EmployeeDTO employeeDTO,
+    public ResponseEntity<?> loginEmployee(
+            @Valid @RequestBody AuthDTO authDTO,
             HttpServletRequest request,
             HttpServletResponse response
     ) {
-        log.info("Employee logged in called from {}", AuthController.class);
-        authService.loginEmployee(employeeDTO, request, response);
+        return new ResponseEntity<>(authService.login(authDTO, request, response), OK);
     }
 
 
@@ -67,7 +62,6 @@ public class AuthController {
      * **/
     @GetMapping(path = "/authenticated")
     @PreAuthorize(value = "hasAuthority('ADMIN')")
-    @ResponseStatus(HttpStatus.OK)
     public String getAuthenticated(Authentication authentication) {
         return "Admin name is " + authentication.getName();
     }
@@ -79,7 +73,6 @@ public class AuthController {
     * @return String
     * **/
     @GetMapping(path = "/employee")
-    @ResponseStatus(HttpStatus.OK)
     public String onlyEmployeesCanHitThisRoute(Authentication authentication) {
         return "An Admin or Employee can hit this rout. Employees name is " + authentication.getName();
     }

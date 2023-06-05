@@ -1,4 +1,4 @@
-package com.example.sessionauth.config.security;
+package com.example.sessionauth.security;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

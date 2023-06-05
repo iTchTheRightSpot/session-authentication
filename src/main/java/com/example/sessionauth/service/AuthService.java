@@ -1,13 +1,13 @@
 package com.example.sessionauth.service;
 
-import com.example.sessionauth.dto.EmployeeDTO;
+import com.example.sessionauth.dto.AuthDTO;
 import com.example.sessionauth.entity.Employee;
 import com.example.sessionauth.entity.Role;
 import com.example.sessionauth.enumeration.RoleEnum;
 import com.example.sessionauth.repository.EmployeeRepo;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.extern.slf4j.Slf4j;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -20,15 +20,14 @@ import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.context.SecurityContextRepository;
-import org.springframework.session.FindByIndexNameSessionRepository;
-import org.springframework.session.Session;
+import org.springframework.session.data.redis.RedisIndexedSessionRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
-@Service @Slf4j
+@Service @Setter
 public class AuthService {
 
     @Value(value = "${custom.max.session}")
@@ -36,9 +35,6 @@ public class AuthService {
 
     @Value(value = "${admin.email}")
     private String adminEmail;
-
-    @Value("${employee.email}")
-    private String test;
 
     private final EmployeeRepo employeeRepository;
 
@@ -50,7 +46,7 @@ public class AuthService {
 
     private final AuthenticationManager authManager;
 
-    private final FindByIndexNameSessionRepository<? extends Session> sessionRepository;
+    private final RedisIndexedSessionRepository redisIndexedSessionRepository;
 
     private final SessionRegistry sessionRegistry;
 
@@ -58,58 +54,51 @@ public class AuthService {
             EmployeeRepo employeeRepository,
             PasswordEncoder passwordEncoder,
             AuthenticationManager authManager,
-            FindByIndexNameSessionRepository<? extends Session> sessionRepository,
+            RedisIndexedSessionRepository redisIndexedSessionRepository,
             SessionRegistry sessionRegistry,
             SecurityContextRepository securityContextRepository
     ) {
         this.employeeRepository = employeeRepository;
         this.passwordEncoder = passwordEncoder;
         this.authManager = authManager;
-        this.sessionRepository = sessionRepository;
+        this.redisIndexedSessionRepository = redisIndexedSessionRepository;
         this.sessionRegistry = sessionRegistry;
         this.securityContextRepository = securityContextRepository;
         this.securityContextHolderStrategy = SecurityContextHolder.getContextHolderStrategy();
     }
 
-
     /**
      * Method responsible for registering an employee
      *
-     * @param dto
-     * @throws IllegalStateException
+     * @param dto is an object that contains user credentials
+     * @throws IllegalStateException is thrown when a user email does not exist
      * @return String
      * **/
-    public String register(EmployeeDTO dto) {
-        String email = dto.getEmail().trim();
-        String password = dto.getPassword().trim();
+    public String register(AuthDTO dto) {
+        String email = dto.email().trim();
 
         Optional<Employee> exists = employeeRepository
                 .findByPrincipal(email);
 
         if (exists.isPresent()) {
-            throw new IllegalStateException(email + " already exists");
+            throw new IllegalStateException(email + " exists");
         }
 
         var employee = new Employee();
         employee.setEmail(email);
-        employee.setPassword(passwordEncoder.encode(password));
-        employee.setLocked(true); // true if not locked
+        employee.setPassword(passwordEncoder.encode(dto.password()));
+        employee.setLocked(true);
         employee.setAccountNonExpired(true);
         employee.setCredentialsNonExpired(true);
-        employee.setEnabled(false); // false for email validation
+        employee.setEnabled(true);
         employee.addRole(new Role(RoleEnum.EMPLOYEE));
 
         if (adminEmail.equals(email)) {
             employee.addRole(new Role(RoleEnum.ADMIN));
         }
 
-        if (dto.getEmail().trim().equals(adminEmail) || dto.getEmail().trim().equals(test)) {
-            employee.setEnabled(true);
-        }
-
-        log.info("New Employee saved");
         employeeRepository.save(employee);
-        return "CREATED";
+        return "Register!";
     }
 
     /**
@@ -117,22 +106,15 @@ public class AuthService {
      * For a better understanding, click the link below
      * <a href="https://docs.spring.io/spring-security/reference/servlet/authentication/session-management.html">...</a>
      *
-     * @param dto
-     * @param request
-     * @param response
-     * @return void
+     * @param dto is a record. It accepts email and password
+     * @param request of type HttpServletRequest
+     * @param response of type HttpServletResponse
+     * @return String
      * **/
-    public void loginEmployee(
-            EmployeeDTO dto,
-            HttpServletRequest request,
-            HttpServletResponse response
-    ) {
-        String email = dto.getEmail().trim();
-        String password = dto.getPassword();
-
+    public String login(AuthDTO dto, HttpServletRequest request, HttpServletResponse response) {
         // Validate User credentials
-        var userNamePasswordToken = new UsernamePasswordAuthenticationToken(email, password);
-        Authentication authentication = authManager.authenticate(userNamePasswordToken);
+        Authentication authentication = authManager.authenticate(UsernamePasswordAuthenticationToken.unauthenticated(
+                dto.email().trim(), dto.password()));
 
         // Validate session constraint is not exceeded
         validateMaxSession(authentication);
@@ -140,22 +122,23 @@ public class AuthService {
         // Create a new context
         SecurityContext context = SecurityContextHolder.createEmptyContext();
         context.setAuthentication(authentication);
+
+        // Update SecurityContextHolder and Strategy
         this.securityContextHolderStrategy.setContext(context);
         this.securityContextRepository.saveContext(context, request, response);
 
-        log.info("{} logged in", email);
+        return "Logged In!";
     }
 
     /**
      * Method is responsible for validating user session is not exceeded. If it has been exceeded, the oldest valid
      * session is removed/ invalidated
      *
-     * @param authentication
-     * @return void
+     * @param authentication of type Spring Core Authentication
      * */
     private void validateMaxSession(Authentication authentication) {
+        // If max session is negative means unlimited session
         if (maxSession <= 0) {
-            // If max session is negative means unlimited session
             return;
         }
 
@@ -163,13 +146,10 @@ public class AuthService {
         List<SessionInformation> sessions = this.sessionRegistry.getAllSessions(principal, false);
 
         if (sessions.size() >= maxSession) {
-            sessions
-                    .stream() //
-                    .min(Comparator.comparing(SessionInformation::getLastRequest)) // Gets the oldest session
-                    .ifPresent(sessionInfo -> {
-                        String sessionID = sessionInfo.getSessionId();
-                        this.sessionRepository.deleteById(sessionID);
-                    });
+            sessions.stream() //
+                    // Gets the oldest session
+                    .min(Comparator.comparing(SessionInformation::getLastRequest)) //
+                    .ifPresent(sessionInfo -> this.redisIndexedSessionRepository.deleteById(sessionInfo.getSessionId()));
         }
     }
 

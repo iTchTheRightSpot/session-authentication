@@ -1,4 +1,4 @@
-package com.example.sessionauth.config.security;
+package com.example.sessionauth.security;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,9 +21,9 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
-import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.session.FindByIndexNameSessionRepository;
 import org.springframework.session.Session;
+import org.springframework.session.data.redis.RedisIndexedSessionRepository;
 import org.springframework.session.security.SpringSessionBackedSessionRegistry;
 
 import static org.springframework.security.config.http.SessionCreationPolicy.IF_REQUIRED;
@@ -34,7 +34,7 @@ public class SecurityConfig {
     @Value(value = "${custom.max.session}")
     private int maxSession;
 
-    private final FindByIndexNameSessionRepository<? extends Session> sessionRepository;
+    private final RedisIndexedSessionRepository redisIndexedSessionRepository;
 
     private final PasswordEncoder passwordEncoder;
 
@@ -43,12 +43,12 @@ public class SecurityConfig {
     private final UserDetailsService detailsService;
 
     public SecurityConfig(
-            FindByIndexNameSessionRepository<? extends Session> sessionRepository,
+            RedisIndexedSessionRepository redisIndexedSessionRepository,
             PasswordEncoder passwordEncoder,
             @Qualifier(value = "authEntryPoint") AuthenticationEntryPoint authEntryPoint,
             @Qualifier(value = "detailService") UserDetailsService detailsService
     ) {
-        this.sessionRepository = sessionRepository;
+        this.redisIndexedSessionRepository = redisIndexedSessionRepository;
         this.passwordEncoder = passwordEncoder;
         this.authEntryPoint = authEntryPoint;
         this.detailsService = detailsService;
@@ -73,7 +73,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(auth -> {
-                    auth.requestMatchers("/api/v1/auth/signup", "/api/v1/auth/login").permitAll();
+                    auth.requestMatchers("/api/v1/auth/register", "/api/v1/auth/login").permitAll();
                     auth.anyRequest().authenticated();
                 })
                 .sessionManagement(sessionManagement -> sessionManagement
@@ -82,14 +82,12 @@ public class SecurityConfig {
                         .maximumSessions(maxSession) //
                         .sessionRegistry(sessionRegistry())
                 )
-                .exceptionHandling((ex) ->
-                        ex.authenticationEntryPoint(this.authEntryPoint)
-                )
+                .exceptionHandling((ex) -> ex.authenticationEntryPoint(this.authEntryPoint))
                 .logout(out -> out
                         .logoutUrl("/api/v1/auth/logout")
                         .invalidateHttpSession(true) // Invalidate all sessions after logout
                         .deleteCookies("JSESSIONID")
-                        .addLogoutHandler(new CustomLogoutHandler(this.sessionRepository))
+                        .addLogoutHandler(new CustomLogoutHandler(this.redisIndexedSessionRepository))
                         .logoutSuccessHandler((request, response, authentication) ->
                                 SecurityContextHolder.clearContext()
                         )
@@ -98,22 +96,12 @@ public class SecurityConfig {
     }
 
     /**
-     * Method allows placing constraints on a single user’s ability to log in to your application
-     * for better understanding
-     * <a href="https://docs.spring.io/spring-security/reference/servlet/authentication/session-management.html">...</a>
-     * */
-    @Bean
-    public HttpSessionEventPublisher httpSessionEventPublisher() {
-        return new HttpSessionEventPublisher();
-    }
-
-    /**
      * Maintains a registry of Session information instances. For better understanding visit
      * <a href="https://github.com/spring-projects/spring-session/blob/main/spring-session-docs/modules/ROOT/examples/java/docs/security/SecurityConfiguration.java">...</a>
      * **/
     @Bean
     public SpringSessionBackedSessionRegistry<? extends Session> sessionRegistry() {
-        return new SpringSessionBackedSessionRegistry<>(this.sessionRepository);
+        return new SpringSessionBackedSessionRegistry<>(this.redisIndexedSessionRepository);
     }
 
     /** A SecurityContextRepository implementation which stores the security context in the HttpSession between requests. */
